@@ -34,9 +34,18 @@ class Database {
     public function query($sql, $params = []) {
         try {
             $stmt = $this->conn->prepare($sql);
-            $stmt->execute($params);
+            if (!$stmt) {
+                throw new Exception("Failed to prepare SQL statement: " . implode(', ', $this->conn->errorInfo()));
+            }
+            
+            $result = $stmt->execute($params);
+            if (!$result) {
+                throw new Exception("Failed to execute SQL statement: " . implode(', ', $stmt->errorInfo()));
+            }
+            
             return $stmt;
         } catch (PDOException $e) {
+            error_log("SQL Error: " . $e->getMessage() . " | SQL: " . $sql . " | Params: " . json_encode($params));
             throw new Exception("Query failed: " . $e->getMessage());
         }
     }

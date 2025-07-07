@@ -55,11 +55,11 @@ class SearchAPI {
         }
         
         if (isset($_GET['in_stock'])) {
-            $params['in_stock'] = $_GET['in_stock'] === 'true';
+            $params['in_stock'] = filter_var($_GET['in_stock'], FILTER_VALIDATE_BOOLEAN);
         }
         
         if (isset($_GET['low_stock'])) {
-            $params['low_stock'] = $_GET['low_stock'] === 'true';
+            $params['low_stock'] = filter_var($_GET['low_stock'], FILTER_VALIDATE_BOOLEAN);
         }
         
         if (isset($_GET['sort_by'])) {
@@ -79,8 +79,26 @@ class SearchAPI {
         }
         
         // Get search results
-        $products = $this->search->searchProducts($params);
-        $stats = $this->search->getSearchStats($params);
+        try {
+            $products = $this->search->searchProducts($params);
+            $stats = $this->search->getSearchStats($params);
+            
+            // Ensure stats has default values if no products found
+            if (empty($stats) || $stats['total_products'] == 0) {
+                $stats = [
+                    'total_products' => 0,
+                    'avg_price' => 0,
+                    'min_price' => 0,
+                    'max_price' => 0,
+                    'total_stock' => 0
+                ];
+            }
+            
+        } catch (Exception $e) {
+            error_log("Search error: " . $e->getMessage());
+            $this->sendResponse(['success' => false, 'message' => 'Search error: ' . $e->getMessage()], 500);
+            return;
+        }
         
         // Format prices with KSh
         foreach ($products as &$product) {

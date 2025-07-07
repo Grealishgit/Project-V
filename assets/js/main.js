@@ -20,6 +20,29 @@ document.addEventListener('DOMContentLoaded', function () {
     initializeEventListeners();
 });
 
+// Initialize event listeners
+function initializeEventListeners() {
+    // Product form submission
+    const productForm = document.getElementById('product-form');
+    if (productForm) {
+        productForm.addEventListener('submit', handleProductSubmit);
+    }
+
+    // Edit form submission
+    const editForm = document.getElementById('edit-form');
+    if (editForm) {
+        editForm.addEventListener('submit', handleEditSubmit);
+    }
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function (event) {
+        const modal = document.getElementById('edit-modal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+}
+
 // Initialize sidebar functionality
 function initializeSidebar() {
     // Close sidebar on mobile by default
@@ -512,8 +535,17 @@ function handleEditSubmit(e) {
             if (data.success) {
                 showMessage('Product updated successfully!', 'success');
                 closeModal();
-                loadProducts();
-                loadDashboardStats();
+                
+                // Refresh the appropriate view
+                const activeSection = document.querySelector('.content-section.active');
+                if (activeSection && activeSection.id === 'products') {
+                    performSearch(); // Refresh the products search
+                } else if (activeSection && activeSection.id === 'dashboard') {
+                    loadDashboardStats(); // Refresh dashboard
+                    loadDashboardProducts(); // Refresh dashboard products
+                } else {
+                    loadProducts(); // Fallback
+                }
             } else {
                 showMessage('Error updating product: ' + data.message, 'error');
             }
@@ -592,14 +624,24 @@ function showMessage(message, type) {
 
 // Enhanced search and filter functionality
 function performSearch() {
-    const searchTerm = document.getElementById('search-input').value;
-    const category = document.getElementById('category-filter').value;
-    const minPrice = document.getElementById('min-price').value;
-    const maxPrice = document.getElementById('max-price').value;
-    const inStockOnly = document.getElementById('in-stock-only').checked;
-    const lowStockOnly = document.getElementById('low-stock-only').checked;
-    const sortBy = document.getElementById('sort-by').value;
-    const sortOrder = document.getElementById('sort-order').value;
+    // Check if elements exist before accessing them
+    const searchInput = document.getElementById('search-input');
+    const categoryFilter = document.getElementById('category-filter');
+    const minPriceInput = document.getElementById('min-price');
+    const maxPriceInput = document.getElementById('max-price');
+    const inStockCheckbox = document.getElementById('in-stock-only');
+    const lowStockCheckbox = document.getElementById('low-stock-only');
+    const sortBySelect = document.getElementById('sort-by');
+    const sortOrderSelect = document.getElementById('sort-order');
+
+    const searchTerm = searchInput ? searchInput.value : '';
+    const category = categoryFilter ? categoryFilter.value : '';
+    const minPrice = minPriceInput ? minPriceInput.value : '';
+    const maxPrice = maxPriceInput ? maxPriceInput.value : '';
+    const inStockOnly = inStockCheckbox ? inStockCheckbox.checked : false;
+    const lowStockOnly = lowStockCheckbox ? lowStockCheckbox.checked : false;
+    const sortBy = sortBySelect ? sortBySelect.value : 'id';
+    const sortOrder = sortOrderSelect ? sortOrderSelect.value : 'DESC';
 
     currentFilters = {
         search: searchTerm,
@@ -614,11 +656,12 @@ function performSearch() {
         offset: (currentPage - 1) * 20
     };
 
-    // Build query string
+    // Build query string - only add parameters that have values
     const params = new URLSearchParams();
     Object.keys(currentFilters).forEach(key => {
-        if (currentFilters[key] !== '' && currentFilters[key] !== false) {
-            params.append(key, currentFilters[key]);
+        const value = currentFilters[key];
+        if (value !== '' && value !== false && value !== null && value !== undefined) {
+            params.append(key, value);
         }
     });
 
