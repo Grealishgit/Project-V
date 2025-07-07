@@ -619,7 +619,7 @@ function handleEditSubmit(e) {
             if (data.success) {
                 showMessage('Product updated successfully!', 'success');
                 closeModal();
-                
+
                 // Refresh the appropriate view
                 const activeSection = document.querySelector('.content-section.active');
                 if (activeSection && activeSection.id === 'products') {
@@ -877,44 +877,104 @@ function updateAnalyticsDisplay(analytics) {
         document.getElementById('analytics-total-products').textContent = analytics.products.total_products;
         document.getElementById('analytics-in-stock').textContent = analytics.products.in_stock_products;
         document.getElementById('analytics-low-stock').textContent = analytics.products.low_stock_products;
-        document.getElementById('analytics-inventory-value').textContent = formatCompactKSh(analytics.products.total_inventory_value);
+        document.getElementById('analytics-inventory-value').textContent = analytics.products.total_inventory_value; // Already formatted
     }
 
     // Update price analysis
     if (analytics.price_analysis) {
         const priceAnalysis = analytics.price_analysis;
-        document.getElementById('analytics-avg-price').textContent = formatKSh(priceAnalysis.avg_price);
-        document.getElementById('analytics-price-range').textContent = `${formatKSh(priceAnalysis.min_price)} - ${formatKSh(priceAnalysis.max_price)}`;
+        document.getElementById('analytics-avg-price').textContent = priceAnalysis.avg_price; // Already formatted
+        document.getElementById('analytics-price-range').textContent = `${priceAnalysis.min_price} - ${priceAnalysis.max_price}`; // Already formatted
 
-        document.getElementById('price-under-1k').textContent = priceAnalysis.under_1k;
-        document.getElementById('price-1k-5k').textContent = priceAnalysis.between_1k_5k;
-        document.getElementById('price-5k-10k').textContent = priceAnalysis.between_5k_10k;
-        document.getElementById('price-over-10k').textContent = priceAnalysis.over_10k;
+        document.getElementById('price-under-1k').textContent = priceAnalysis.under_1k || 0;
+        document.getElementById('price-1k-5k').textContent = priceAnalysis.between_1k_5k || 0;
+        document.getElementById('price-5k-10k').textContent = priceAnalysis.between_5k_10k || 0;
+        document.getElementById('price-over-10k').textContent = priceAnalysis.over_10k || 0;
     }
 
     // Update stock analysis
     if (analytics.stock_analysis) {
         const stockAnalysis = analytics.stock_analysis;
-        document.getElementById('analytics-total-stock').textContent = stockAnalysis.total_stock;
+        document.getElementById('analytics-total-stock').textContent = stockAnalysis.total_stock || 0;
 
-        document.getElementById('stock-out').textContent = stockAnalysis.out_of_stock;
-        document.getElementById('stock-low').textContent = stockAnalysis.low_stock;
-        document.getElementById('stock-medium').textContent = stockAnalysis.medium_stock;
-        document.getElementById('stock-high').textContent = stockAnalysis.high_stock;
+        document.getElementById('stock-out').textContent = stockAnalysis.out_of_stock || 0;
+        document.getElementById('stock-low').textContent = stockAnalysis.low_stock || 0;
+        document.getElementById('stock-medium').textContent = stockAnalysis.medium_stock || 0;
+        document.getElementById('stock-high').textContent = stockAnalysis.high_stock || 0;
     }
 
-    // Update categories
+    // Update category breakdown
     if (analytics.categories) {
         updateCategoryBreakdown(analytics.categories);
     }
 
-    // Update recent activities
-    if (analytics.recent_activities) {
-        updateRecentActivities(analytics.recent_activities);
+    // Load low stock alerts
+    loadLowStockAlerts();
+}
+
+function updateCategoryBreakdown(categories) {
+    const container = document.getElementById('category-breakdown');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    categories.slice(0, 5).forEach(category => {
+        const categoryItem = document.createElement('div');
+        categoryItem.className = 'category-item';
+        categoryItem.innerHTML = `
+            <div class="category-info">
+                <span class="category-name">${category.category}</span>
+                <span class="category-count">${category.product_count} products</span>
+            </div>
+            <div class="category-value">${category.category_value || 'KSh 0'}</div>
+        `;
+        container.appendChild(categoryItem);
+    });
+}
+
+function loadLowStockAlerts() {
+    fetch('api/analytics.php?type=low-stock&threshold=10')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateLowStockTable(data.data);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading low stock alerts:', error);
+        });
+}
+
+function updateLowStockTable(products) {
+    const tbody = document.getElementById('low-stock-tbody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+
+    if (products.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 20px;">No low stock items</td></tr>';
+        return;
     }
 
-    // Load low stock products
-    loadLowStockProducts();
+    products.forEach(product => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${product.name}</td>
+            <td><span class="category-badge">${product.category}</span></td>
+            <td><span class="stock-badge ${product.stock <= 5 ? 'critical' : 'low'}">${product.stock}</span></td>
+            <td>${product.formatted_price || formatKSh(product.price)}</td>
+            <td>${product.formatted_remaining_value || formatKSh(product.price * product.stock)}</td>
+            <td>
+                <button class="btn btn-sm btn-warning" onclick="editProduct(${product.id})">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function loadLowStockProducts() {
 
     // Update dashboard stats as well
     updateDashboardFromAnalytics(analytics);
