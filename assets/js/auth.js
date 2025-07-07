@@ -7,7 +7,10 @@ class AuthManager {
 
     async checkAuth() {
         try {
-            const response = await fetch('api/auth.php?action=validate');
+            const response = await fetch('api/login.php', {
+                method: 'POST',
+                body: new URLSearchParams({ action: 'validate' })
+            });
             const result = await response.json();
 
             if (result.success) {
@@ -27,12 +30,9 @@ class AuthManager {
 
     async logout() {
         try {
-            const response = await fetch('api/auth.php?action=logout', {
+            const response = await fetch('api/login.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({})
+                body: new URLSearchParams({ action: 'logout' })
             });
 
             const result = await response.json();

@@ -24,7 +24,7 @@
             border-radius: 12px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 400px;
+            max-width: 500px;
             margin: 20px;
         }
 
@@ -343,17 +343,11 @@
                     btn.disabled = true;
 
                     const formData = new FormData(this);
-                    const data = {
-                        username: formData.get('username'),
-                        password: formData.get('password')
-                    };
+                    formData.append('action', 'login');
 
-                    const response = await fetch('api/auth.php?action=login', {
+                    const response = await fetch('api/login.php', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(data)
+                        body: formData
                     });
 
                     const result = await response.json();
@@ -364,7 +358,7 @@
                             window.location.href = 'index.html';
                         }, 1500);
                     } else {
-                        showAlert(result.message);
+                        showAlert(result.error || result.message);
                     }
                 } catch (error) {
                     console.error('Login error:', error);
@@ -396,19 +390,11 @@
                         return;
                     }
 
-                    const data = {
-                        username: formData.get('username'),
-                        email: formData.get('email'),
-                        full_name: formData.get('full_name'),
-                        password: password
-                    };
+                    formData.append('action', 'register');
 
-                    const response = await fetch('api/auth.php?action=register', {
+                    const response = await fetch('api/login.php', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(data)
+                        body: formData
                     });
 
                     const result = await response.json();
@@ -419,7 +405,7 @@
                             showAuthForm('login');
                         }, 2000);
                     } else {
-                        showAlert(result.message);
+                        showAlert(result.error || result.message);
                     }
                 } catch (error) {
                     console.error('Registration error:', error);

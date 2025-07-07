@@ -40,6 +40,12 @@ function initializeEventListeners() {
         if (event.target === modal) {
             closeModal();
         }
+
+        // Close admin modal when clicking outside
+        const adminModal = document.getElementById('admin-modal');
+        if (event.target === adminModal) {
+            closeAdminModal();
+        }
     });
 }
 
@@ -248,7 +254,7 @@ function updateDashboardCategoryBreakdown(categories) {
                 <span class="category-name">${category.category}</span>
                 <span class="category-count">${category.product_count} products</span>
             </div>
-            <div class="category-value">${formatKSh(category.category_value || 0)}</div>
+            <div class="category-value">${category.category_value || 'KSh 0'}</div>
         `;
         container.appendChild(categoryItem);
     });
@@ -677,6 +683,112 @@ function closeModal() {
     currentEditId = null;
 }
 
+// Admin Modal Functions
+function openAdminModal() {
+    const modal = document.getElementById('admin-modal');
+    const loading = document.getElementById('admin-info-loading');
+    const content = document.getElementById('admin-info-content');
+    const error = document.getElementById('admin-error');
+
+    // Show modal and loading state
+    modal.style.display = 'block';
+    loading.style.display = 'flex';
+    content.style.display = 'none';
+    error.style.display = 'none';
+
+    // Fetch admin data
+    fetch('api/admin.php')
+        .then(response => {
+            console.log('Admin API response status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Admin API response data:', data);
+            loading.style.display = 'none';
+
+            if (data.success) {
+                displayAdminInfo(data.admin);
+                content.style.display = 'block';
+            } else {
+                // Check if we need to redirect to login
+                if (data.redirect) {
+                    console.log('Redirecting to:', data.redirect);
+                    window.location.href = data.redirect;
+                    return;
+                }
+                showAdminError(data.error || 'Failed to load admin information');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching admin data:', error);
+            loading.style.display = 'none';
+            showAdminError('Network error occurred');
+        });
+}
+
+function closeAdminModal() {
+    const modal = document.getElementById('admin-modal');
+    modal.style.display = 'none';
+}
+
+function displayAdminInfo(admin) {
+    document.getElementById('admin-avatar').src = 'https://avatar.iran.liara.run/public/18';
+    document.getElementById('admin-user-id').textContent = admin.user_id;
+    document.getElementById('admin-username').textContent = admin.username;
+    document.getElementById('admin-email').textContent = admin.email;
+    document.getElementById('admin-status').textContent = admin.status;
+    document.getElementById('admin-created').textContent = admin.created_at;
+    document.getElementById('admin-updated').textContent = admin.updated_at;
+
+    // Style the status badge based on is_active field
+    const statusElement = document.getElementById('admin-status');
+    if (admin.status === 'Active') {
+        statusElement.className = 'status-badge status-active';
+    } else {
+        statusElement.className = 'status-badge status-inactive';
+    }
+}
+
+function showAdminError(message) {
+    document.getElementById('admin-error-text').textContent = message;
+    document.getElementById('admin-error').style.display = 'block';
+}
+
+function logout() {
+    if (confirm('Are you sure you want to logout?')) {
+        // Check if AuthManager is available
+        if (typeof authManager !== 'undefined' && authManager.logout) {
+            // Use the existing AuthManager logout method
+            authManager.logout();
+        } else {
+            // Fallback logout method if AuthManager is not available
+            fetch('api/auth.php?action=logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({})
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Redirect to login page
+                        window.location.href = 'login.html';
+                    } else {
+                        console.error('Logout failed:', data.message);
+                        // Still redirect to login page even if logout API fails
+                        window.location.href = 'login.html';
+                    }
+                })
+                .catch(error => {
+                    console.error('Logout error:', error);
+                    // Still redirect to login page even if request fails
+                    window.location.href = 'login.html';
+                });
+        }
+    }
+}
+
 // Reset form
 function resetForm() {
     document.getElementById('product-form').reset();
@@ -931,6 +1043,7 @@ function updateCategoryBreakdown(categories) {
         container.appendChild(categoryItem);
     });
 }
+
 
 function loadLowStockAlerts() {
     fetch('api/analytics.php?type=low-stock&threshold=10')

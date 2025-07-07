@@ -29,12 +29,12 @@
                 <button class="navbar-btn" onclick="toggleDarkMode()" title="Toggle Dark Mode">
                     <i class="fas fa-moon"></i>
                 </button>
-                <button class="navbar-btn" title="Notifications">
+                <!-- <button class="navbar-btn" title="Notifications">
                     <i class="fas fa-bell"></i>
                     <span class="notification-badge">3</span>
-                </button>
-                <div class="navbar-user">
-                    <img src="https://via.placeholder.com/32x32" alt="User Avatar" class="user-avatar">
+                </button> -->
+                <div class="navbar-user" onclick="openAdminModal()">
+                    <img src="https://avatar.iran.liara.run/public/18" alt="User Avatar" class="user-avatar">
                     <span class="user-name">Admin</span>
                     <i class="fas fa-chevron-down"></i>
                 </div>
@@ -76,10 +76,10 @@
             </ul>
             <div class="sidebar-footer">
                 <div class="sidebar-user">
-                    <img src="https://via.placeholder.com/40x40" alt="User" class="sidebar-user-avatar">
+                    <img src="https://avatar.iran.liara.run/public/18" alt="User" class="sidebar-user-avatar">
                     <div class="sidebar-user-info">
                         <div class="sidebar-user-name">Admin</div>
-                        <div class="sidebar-user-role">Administrator</div>
+                        <!-- <div class="sidebar-user-role">Administrator</div> -->
                     </div>
                 </div>
             </div>
@@ -165,7 +165,7 @@
 
                         <div class="analytics-card">
                             <div class="card-header">
-                                <h4>Category Breakdown</h4>
+                                <h4>Category Breakdowns</h4>
                                 <i class="fas fa-chart-pie"></i>
                             </div>
                             <div class="card-content">
@@ -600,14 +600,14 @@
                         <option value="Books">Books</option>
                         <option value="Home">Home</option>
                         <option value="Sports">Sports</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="edit-price">Price (KSh)</label>
-                    <input type="number" id="edit-price" name="price" step="0.01" required>
-                </div>
-                <div class="form-group">
-                    <label for="edit-stock">Stock Quantity</label>
+                        </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-price">Price (KSh)</label>
+                            <input type="number" id="edit-price" name="price" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-stock">Stock Quantity</label>
                     <input type="number" id="edit-stock" name="stock" required>
                 </div>
                 <div class="form-group">
@@ -617,14 +617,73 @@
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Update Product</button>
                     <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                </div>
-            </form>
-        </div>
+                    </div>
+                    </form>
+                    </div>
     </div>
 
+    <!-- Admin User Modal -->
+    <div id="admin-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-shield"></i> Admin Profile</h3>
+                <span class="modal-close" onclick="closeAdminModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="admin-info-loading" id="admin-info-loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading admin information...</p>
+                </div>
+                <div class="admin-info-content" id="admin-info-content" style="display: none;">
+                    <div class="admin-avatar-section">
+                        <img id="admin-avatar" src="" alt="Admin Avatar" class="admin-modal-avatar">
+                    </div>
+                    <div class="admin-details">
+                        <div class="admin-detail-item">
+                            <label><i class="fas fa-id-badge"></i> Admin ID:</label>
+                            <span id="admin-user-id"></span>
+                        </div>
+                        <div class="admin-detail-item"> <label><i class="fas fa-user"></i> Username:</label>
+                            <span id="admin-username"></span>
+                        </div>
+                        <div class="admin-detail-item">
+                            <label><i class="fas fa-envelope"></i> Email:</label>
+                            <span id="admin-email"></span>
+                        </div>
+                        <!-- <div class="admin-detail-item">
+                                                                                                                                    <label><i class="fas fa-user-tag"></i> Role:</label>
+                                                                                                                                    <span id="admin-role"></span>
+                                                                                                                                </div> -->
+                        <div class="admin-detail-item">
+                            <label><i class="fas fa-circle"></i> Status:</label>
+                            <span id="admin-status" class="status-badge"></span>
+                        </div>
+                        <div class="admin-detail-item">
+                            <label><i class="fas fa-calendar-plus"></i> Created:</label>
+                            <span id="admin-created"></span>
+                        </div>
+                        <div class="admin-detail-item">
+                            <label><i class="fas fa-calendar-edit"></i> Last Updated:</label>
+                            <span id="admin-updated"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="admin-error" id="admin-error" style="display: none;">
+                    <div class="error-message"> <i class="fas fa-exclamation-triangle"></i>
+                        <span id="admin-error-text">Failed to load admin information.</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="margin-bottom: 20px; padding: 10px;"> <button type="button"
+                    class="btn btn-secondary" onclick="closeAdminModal()">Close</button>
+                <button type="button" class="btn btn-primary" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </div>
     <script src="assets/js/auth.js"></script>
     <script src="assets/js/main.js"></script>
-</body>
 </body>
 
 </html>

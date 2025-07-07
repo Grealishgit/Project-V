@@ -145,7 +145,10 @@ class AuthAPI {
         
         // Store session token in session
         $_SESSION['admin_session_token'] = $result['session_token'];
-        $_SESSION['admin_user_id'] = $result['user']['id'];
+        $_SESSION['admin_id'] = $result['user']['id'];
+        $_SESSION['username'] = $result['user']['username'];
+        $_SESSION['full_name'] = $result['user']['full_name'];
+        $_SESSION['email'] = $result['user']['email'];
         
         $this->sendResponse([
             'success' => true,
