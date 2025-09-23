@@ -803,50 +803,124 @@
             <!-- Add Product Section -->
             <section id="add-product" class="content-section">
                 <div class="section-header">
-                    <h2>Enter Product Details Here</h2>
+                    <h2>Add New Product</h2>
+                    <p class="section-subtitle">Create a new product and see a live preview</p>
                 </div>
-                <div class="form-container">
-                    <form id="product-form" enctype="multipart/form-data">
-                        <div class="form-group">
-                            <label for="product-name">Product Name</label>
-                            <input type="text" id="product-name" name="name" required>
+                
+                <div class="add-product-container">
+                    <!-- Form Section (Left) -->
+                    <div class="product-form-section">
+                        <div class="form-container">
+                            <h3 class="form-title">Product Details</h3>
+                            <form id="product-form" enctype="multipart/form-data">
+                                <div class="form-group">
+                                    <label for="product-name">Product Name</label>
+                                    <input type="text" id="product-name" name="name" required 
+                                           placeholder="Enter product name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="product-category">Category</label>
+                                    <select id="product-category" name="category" required>
+                                        <option value="">Select Category</option>
+                                        <option value="Electronics">Electronics</option>
+                                        <option value="Clothing">Clothing</option>
+                                        <option value="Books">Books</option>
+                                        <option value="Home">Home</option>
+                                        <option value="Sports">Sports</option>
+                                    </select>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="product-price">Price (KSh)</label>
+                                        <input type="number" id="product-price" name="price" step="0.01" required 
+                                               placeholder="0.00">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="product-stock">Stock Quantity</label>
+                                        <input type="number" id="product-stock" name="stock" required 
+                                               placeholder="0">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="product-description">Description</label>
+                                    <textarea id="product-description" name="description" rows="4" 
+                                              placeholder="Enter product description..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="product-image">Product Image</label>
+                                    <div class="file-input-wrapper">
+                                        <input type="file" id="product-image" name="image" accept="image/*">
+                                        <label for="product-image" class="file-input-label">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                            <span>Choose Image</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Save Product
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                                        <i class="fas fa-times"></i> Clear Form
+                                    </button>
+                                </div>
+                            </form>
                         </div>
-                        <div class="form-group">
-                            <label for="product-category">Category</label>
-                            <select id="product-category" name="category" required>
-                                <option value="">Select Category</option>
-                                <option value="Electronics">Electronics</option>
-                                <option value="Clothing">Clothing</option>
-                                <option value="Books">Books</option>
-                                <option value="Home">Home</option>
-                                <option value="Sports">Sports</option>
-                            </select>
+                    </div>
+
+                    <!-- Preview Section (Right) -->
+                    <div class="product-preview-section">
+                        <div class="preview-container">
+                            <h3 class="preview-title">Live Preview</h3>
+                            <div class="product-preview-card">
+                                <div class="preview-image-container">
+                                    <div id="preview-image" class="preview-image">
+                                        <i class="fas fa-image"></i>
+                                        <span>No image selected</span>
+                                    </div>
+                                </div>
+                                <div class="preview-content">
+                                    <div class="preview-header">
+                                        <h4 id="preview-name" class="preview-product-name">Product Name</h4>
+                                        <span id="preview-category" class="preview-category">Category</span>
+                                    </div>
+                                    <div class="preview-price-section">
+                                        <span id="preview-price" class="preview-price">KSh 0.00</span>
+                                        <div class="preview-stock">
+                                            <i class="fas fa-box"></i>
+                                            <span id="preview-stock">0 in stock</span>
+                                        </div>
+                                    </div>
+                                    <div class="preview-description">
+                                        <p id="preview-description">Product description will appear here...</p>
+                                    </div>
+                                    <div class="preview-badges">
+                                        <span id="preview-stock-badge" class="stock-badge">Out of Stock</span>
+                                        <span id="preview-value-badge" class="value-badge">KSh 0.00 Total Value</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Preview Stats -->
+                            <div class="preview-stats">
+                                <div class="preview-stat">
+                                    <i class="fas fa-tag"></i>
+                                    <span>Price per unit</span>
+                                    <strong id="preview-unit-price">KSh 0.00</strong>
+                                </div>
+                                <div class="preview-stat">
+                                    <i class="fas fa-warehouse"></i>
+                                    <span>Total inventory value</span>
+                                    <strong id="preview-total-value">KSh 0.00</strong>
+                                </div>
+                                <div class="preview-stat">
+                                    <i class="fas fa-chart-line"></i>
+                                    <span>Stock status</span>
+                                    <strong id="preview-status">Not set</strong>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="product-price">Price (KSh)</label>
-                            <input type="number" id="product-price" name="price" step="0.01" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="product-stock">Stock Quantity</label>
-                            <input type="number" id="product-stock" name="stock" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="product-description">Description</label>
-                            <textarea id="product-description" name="description" rows="4"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="product-image">Product Image</label>
-                            <input type="file" id="product-image" name="image" accept="image/*">
-                        </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Save Product
-                            </button>
-                            <button type="button" class="btn btn-secondary" onclick="resetForm()">
-                                <i class="fas fa-times"></i> Cancel
-                            </button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
             </section>
         </div>

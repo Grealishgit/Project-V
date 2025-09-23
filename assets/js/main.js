@@ -30,6 +30,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Initialize form submission handlers
     initializeEventListeners();
+    
+    // Initialize product preview functionality
+    initializeProductPreview();
 
     // Initialize analytics if on analytics page
     if (document.querySelector('.content-section.active')?.id === 'analytics') {
@@ -809,7 +812,126 @@ function logout() {
 // Reset form
 function resetForm() {
     document.getElementById('product-form').reset();
+    resetProductPreview();
     showSection('products');
+}
+
+// Reset product preview to default values
+function resetProductPreview() {
+    document.getElementById('preview-name').textContent = 'Product Name';
+    document.getElementById('preview-category').textContent = 'Category';
+    document.getElementById('preview-price').textContent = 'KSh 0.00';
+    document.getElementById('preview-stock').textContent = '0 in stock';
+    document.getElementById('preview-description').textContent = 'Product description will appear here...';
+    document.getElementById('preview-unit-price').textContent = 'KSh 0.00';
+    document.getElementById('preview-total-value').textContent = 'KSh 0.00';
+    document.getElementById('preview-status').textContent = 'Not set';
+    
+    // Reset image
+    const previewImage = document.getElementById('preview-image');
+    previewImage.innerHTML = '<i class="fas fa-image"></i><span>No image selected</span>';
+    
+    // Reset badges
+    const stockBadge = document.getElementById('preview-stock-badge');
+    stockBadge.textContent = 'Out of Stock';
+    stockBadge.className = 'stock-badge';
+    
+    document.getElementById('preview-value-badge').textContent = 'KSh 0.00 Total Value';
+}
+
+// Initialize product preview functionality
+function initializeProductPreview() {
+    // Get form elements
+    const nameInput = document.getElementById('product-name');
+    const categorySelect = document.getElementById('product-category');
+    const priceInput = document.getElementById('product-price');
+    const stockInput = document.getElementById('product-stock');
+    const descriptionTextarea = document.getElementById('product-description');
+    const imageInput = document.getElementById('product-image');
+    
+    // Add event listeners for real-time preview updates
+    if (nameInput) {
+        nameInput.addEventListener('input', updateProductPreview);
+    }
+    if (categorySelect) {
+        categorySelect.addEventListener('change', updateProductPreview);
+    }
+    if (priceInput) {
+        priceInput.addEventListener('input', updateProductPreview);
+    }
+    if (stockInput) {
+        stockInput.addEventListener('input', updateProductPreview);
+    }
+    if (descriptionTextarea) {
+        descriptionTextarea.addEventListener('input', updateProductPreview);
+    }
+    if (imageInput) {
+        imageInput.addEventListener('change', handleImagePreview);
+    }
+}
+
+// Update product preview with current form values
+function updateProductPreview() {
+    const name = document.getElementById('product-name')?.value || 'Product Name';
+    const category = document.getElementById('product-category')?.value || 'Category';
+    const price = parseFloat(document.getElementById('product-price')?.value) || 0;
+    const stock = parseInt(document.getElementById('product-stock')?.value) || 0;
+    const description = document.getElementById('product-description')?.value || 'Product description will appear here...';
+    
+    // Update preview elements
+    document.getElementById('preview-name').textContent = name;
+    document.getElementById('preview-category').textContent = category;
+    document.getElementById('preview-price').textContent = formatKSh(price);
+    document.getElementById('preview-stock').textContent = `${stock} in stock`;
+    document.getElementById('preview-description').textContent = description;
+    document.getElementById('preview-unit-price').textContent = formatKSh(price);
+    
+    // Calculate total value
+    const totalValue = price * stock;
+    document.getElementById('preview-total-value').textContent = formatKSh(totalValue);
+    document.getElementById('preview-value-badge').textContent = `${formatKSh(totalValue)} Total Value`;
+    
+    // Update stock status
+    const stockBadge = document.getElementById('preview-stock-badge');
+    const statusElement = document.getElementById('preview-status');
+    
+    if (stock > 0) {
+        stockBadge.textContent = 'In Stock';
+        stockBadge.className = 'stock-badge in-stock';
+        statusElement.textContent = stock > 10 ? 'Good Stock' : 'Low Stock';
+    } else {
+        stockBadge.textContent = 'Out of Stock';
+        stockBadge.className = 'stock-badge';
+        statusElement.textContent = 'Out of Stock';
+    }
+}
+
+// Handle image preview
+function handleImagePreview(event) {
+    const file = event.target.files[0];
+    const previewImage = document.getElementById('preview-image');
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImage.innerHTML = `<img src="${e.target.result}" alt="Product Preview">`;
+        };
+        reader.readAsDataURL(file);
+        
+        // Update file input label
+        const label = document.querySelector('.file-input-label span');
+        if (label) {
+            label.textContent = file.name;
+        }
+    } else {
+        previewImage.innerHTML = '<i class="fas fa-image"></i><span>No image selected</span>';
+        
+        // Reset file input label
+        const label = document.querySelector('.file-input-label span');
+        if (label) {
+            label.textContent = 'Choose Image';
+        }
+    }
 }
 
 // Show message
