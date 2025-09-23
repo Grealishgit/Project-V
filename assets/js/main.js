@@ -358,7 +358,7 @@ function displayDashboardProducts(products) {
                 <div class="product-info">
                     ${product.image ?
             `<img src="uploads/${product.image}" alt="${product.name}" class="product-thumb">` :
-            '<div class="product-thumb no-image"><i class="fas fa-box"></i></div>'
+            '<div class="product-thumb-icon no-image"><i class="fas fa-box"></i></div>'
                     }
                     <span class="product-name">${product.name}</span>
                 </div>
