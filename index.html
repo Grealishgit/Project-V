@@ -102,100 +102,248 @@
 
             <!-- Dashboard Section -->
             <section id="dashboard" class="content-section active">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-box"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3 id="total-products">0</h3>
-                            <p>Total Products</p>
-                        </div>
+                <!-- Dashboard Header -->
+                <div class="dashboard-header">
+                    <div class="dashboard-title">
+                        <h1>Dashboard Overview</h1>
+                        <p class="dashboard-subtitle">Welcome back! Here's what's happening with your inventory today.</p>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-dollar-sign"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3 id="avg-price">KSh 0</h3>
-                            <p>Average Price</p>
-                        </div>
+                    <div class="dashboard-actions">
+                        <button class="btn btn-primary" onclick="refreshDashboard()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        <button class="btn btn-secondary" onclick="exportData()">
+                            <i class="fas fa-download"></i> Export
+                        </button>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-tags"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3 id="categories">0</h3>
-                            <p>Categories</p>
-                        </div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-chart-line"></i>
+                    
+                    <!-- Key Performance Indicators -->
+                    <div class="kpi-section">
+                        <h2 class="section-title">Key Performance Indicators</h2>
+                        <div class="kpi-grid">
+                            <div class="kpi-card primary">
+                                <div class="kpi-header">
+                                    <div class="kpi-icon">
+                                        <i class="fas fa-cubes"></i>
+                                    </div>
+                                    <div class="kpi-trend positive">
+                                        <i class="fas fa-arrow-up"></i>
+                                        <span>+5.2%</span>
+                                    </div>
+                                </div>
+                                <div class="kpi-content">
+                                    <h3 id="total-products">0</h3>
+                                    <p>Total Products</p>
+                                <div class="kpi-progress">
+                                    <div class="progress-bar" style="width: 75%"></div>
+                                </div>
+                                </div>
                         </div>
-                        <div class="stat-info">
-                            <h3 id="inventory-value">KSh 0</h3>
-                            <p>Total Inventory Value</p>
+                        
+                        <div class="kpi-card success">
+                            <div class="kpi-header">
+                                <div class="kpi-icon">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </div>
+                                <div class="kpi-trend positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    <span>+12.8%</span>
+                                </div>
+                                </div>
+                            <div class="kpi-content">
+                                <h3 id="inventory-value">KSh 0</h3>
+                                <p>Total Inventory Value</p>
+                                <div class="kpi-progress">
+                                    <div class="progress-bar" style="width: 88%"></div>
+                                </div>
+                            </div>
+                            </div>
+                            
+                            <div class="kpi-card warning">
+                                <div class="kpi-header">
+                                    <div class="kpi-icon">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                    <div class="kpi-trend negative">
+                                        <i class="fas fa-arrow-down"></i>
+                                        <span>-2.1%</span>
+                                    </div>
+                                </div>
+                                <div class="kpi-content">
+                                    <h3 id="low-stock-count">0</h3>
+                                    <p>Low Stock Items</p>
+                                    <div class="kpi-progress">
+                                        <div class="progress-bar" style="width: 25%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="kpi-card info">
+                                <div class="kpi-header">
+                                    <div class="kpi-icon">
+                                        <i class="fas fa-tags"></i>
+                                    </div>
+                                <div class="kpi-trend neutral">
+                                    <i class="fas fa-minus"></i>
+                                    <span>0%</span>
+                                </div>
+                                </div>
+                                <div class="kpi-content">
+                                    <h3 id="categories">0</h3>
+                                <p>Product Categories</p>
+                                <div class="kpi-progress">
+                                    <div class="progress-bar" style="width: 60%"></div>
+                                </div>
+                                </div>
                         </div>
-                    </div>
-                </div>
+                        
+                        <div class="kpi-card secondary">
+                            <div class="kpi-header">
+                                <div class="kpi-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="kpi-trend positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    <span>+3.7%</span>
+                                </div>
+                                </div>
+                                <div class="kpi-content">
+                                    <h3 id="avg-price">KSh 0</h3>
+                                    <p>Average Product Price</p>
+                                    <div class="kpi-progress">
+                                        <div class="progress-bar" style="width: 65%"></div>
+                                    </div>
+                                </div>
+                                </div>
 
-                <!-- Analytics Overview -->
-                <div class="analytics-overview">
-                    <h3>Analytics Overview</h3>
-                    <div class="analytics-cards">
-                        <div class="analytics-card">
+                        <div class="kpi-card accent">
+                            <div class="kpi-header">
+                                <div class="kpi-icon">
+                                    <i class="fas fa-warehouse"></i>
+                                </div>
+                                <div class="kpi-trend positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    <span>+8.4%</span>
+                                </div>
+                                </div>
+                                <div class="kpi-content">
+                                    <h3 id="total-stock">0</h3>
+                                    <p>Total Stock Units</p>
+                                    <div class="kpi-progress">
+                                        <div class="progress-bar" style="width: 82%"></div>
+                                    </div>
+                                </div>
+                                </div>
+                                </div>
+                                </div>
+                                
+                                <!-- Analytics Dashboard -->
+                                <div class="analytics-dashboard">
+                                    <div class="analytics-row">
+                                        <!-- Stock Analysis Card -->
+                                        <div class="analytics-card stock-analysis">
+                                            <div class="card-header">
+                                                <h3>Stock Analysis</h3>
+                                                <div class="card-actions">
+                                                    <button class="card-action-btn" onclick="showLowStockDetails()">
+                                                        <i class="fas fa-expand"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                            <div class="card-content">
+                                <div class="stock-metrics">
+                                    <div class="stock-metric in-stock">
+                                        <div class="metric-icon">
+                                            <i class="fas fa-check-circle"></i>
+                                        </div>
+                                        <div class="metric-info">
+                                            <span class="metric-value" id="dashboard-in-stock">0</span>
+                                            <span class="metric-label">In Stock</span>
+                                        </div>
+                                    </div>
+                                    <div class="stock-metric low-stock">
+                                        <div class="metric-icon">
+                                            <i class="fas fa-exclamation-circle"></i>
+                                        </div>
+                                        <div class="metric-info">
+                                            <span class="metric-value" id="dashboard-low-stock">0</span>
+                                            <span class="metric-label">Low Stock</span>
+                                        </div>
+                                    </div>
+                                    <div class="stock-metric out-of-stock">
+                                        <div class="metric-icon">
+                                            <i class="fas fa-times-circle"></i>
+                                        </div>
+                                        <div class="metric-info">
+                                            <span class="metric-value" id="dashboard-out-stock">0</span>
+                                            <span class="metric-label">Out of Stock</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="stock-chart">
+                                    <canvas id="stockChart" width="400" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Category Breakdown Card -->
+                        <div class="analytics-card category-breakdown">
                             <div class="card-header">
-                                <h4>Stock Analysis</h4>
-                                <i class="fas fa-warehouse"></i>
+                                <h3>Category Distribution</h3>
+                                <div class="card-actions">
+                                    <button class="card-action-btn">
+                                        <i class="fas fa-chart-pie"></i>
+                                    </button>
+                                    </div>
                             </div>
                             <div class="card-content">
-                                <div class="stat-item">
-                                    <span class="stat-label">In Stock:</span>
-                                    <span id="dashboard-in-stock" class="stat-value">0</span>
+                                <div class="category-chart">
+                                    <canvas id="categoryChart" width="300" height="300"></canvas>
                                 </div>
-                                <div class="stat-item">
-                                    <span class="stat-label">Low Stock:</span>
-                                    <span id="dashboard-low-stock" class="stat-value text-warning">0</span>
-                                </div>
-                                <div class="stat-item">
-                                    <span class="stat-label">Out of Stock:</span>
-                                    <span id="dashboard-out-stock" class="stat-value text-danger">0</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="analytics-card">
-                            <div class="card-header">
-                                <h4>Category Breakdowns</h4>
-                                <i class="fas fa-chart-pie"></i>
-                            </div>
-                            <div class="card-content">
                                 <div id="dashboard-category-breakdown" class="category-list">
                                     <!-- Category data will be loaded here -->
                                 </div>
                             </div>
                         </div>
 
-                        <div class="analytics-card">
+                        <!-- Revenue Analysis Card -->
+                        <div class="analytics-card revenue-analysis">
                             <div class="card-header">
-                                <h4>Price Distribution</h4>
-                                <i class="fas fa-chart-bar"></i>
+                                <h3>Revenue Analysis</h3>
+                                <div class="card-actions">
+                                    <button class="card-action-btn">
+                                        <i class="fas fa-chart-bar"></i>
+                                    </button>
+                                    </div>
                             </div>
                             <div class="card-content">
+                                <div class="revenue-metrics">
+                                    <div class="revenue-item">
+                                        <span class="revenue-label">Today's Potential</span>
+                                        <span class="revenue-value" id="today-potential">KSh 0</span>
+                                    </div>
+                                    <div class="revenue-item">
+                                        <span class="revenue-label">Week's Potential</span>
+                                        <span class="revenue-value" id="week-potential">KSh 0</span>
+                                    </div>
+                                    <div class="revenue-item">
+                                        <span class="revenue-label">Month's Potential</span>
+                                        <span class="revenue-value" id="month-potential">KSh 0</span>
+                                    </div>
+                                </div>
                                 <div class="price-distribution">
                                     <div class="distribution-item">
-                                        <span>Under KSh 1,000:</span>
-                                        <span id="dashboard-price-under-1k" class="badge">0</span>
+                                        <span class="distribution-label">Under KSh 1,000</span>
+                                        <span class="distribution-badge low" id="dashboard-price-under-1k">0</span>
                                     </div>
                                     <div class="distribution-item">
-                                        <span>KSh 1,000 - 5,000:</span>
-                                        <span id="dashboard-price-1k-5k" class="badge">0</span>
+                                        <span class="distribution-label">KSh 1,000 - 5,000</span>
+                                        <span class="distribution-badge medium" id="dashboard-price-1k-5k">0</span>
                                     </div>
                                     <div class="distribution-item">
-                                        <span>KSh 5,000+:</span>
-                                        <span id="dashboard-price-over-5k" class="badge">0</span>
+                                        <span class="distribution-label">Above KSh 5,000</span>
+                                        <span class="distribution-badge high" id="dashboard-price-over-5k">0</span>
                                     </div>
                                 </div>
                             </div>
@@ -203,78 +351,91 @@
                     </div>
                 </div>
 
-                <!-- Products List Section -->
-                <div class="dashboard-products">
-                    <h3>Products Overview</h3>
-                    <div class="products-controls">
-                        <div class="products-search">
-                            <input type="text" id="dashboard-search" placeholder="Search products..."
-                                onkeyup="searchDashboardProducts()">
-                            <i class="fas fa-search"></i>
+                <!-- Quick Actions Panel -->
+                <div class="quick-actions-panel">
+                    <h2 class="section-title">Quick Actions</h2>
+                    <div class="quick-actions-grid">
+                        <div class="quick-action-card" onclick="showSection('add-product')">
+                            <div class="action-icon">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Add Product</h4>
+                                <p>Create a new product</p>
+                            </div>
                         </div>
-                        <div class="products-filter">
-                            <select id="dashboard-category-filter" onchange="filterDashboardProducts()">
-                                <option value="">All Categories</option>
-                                <option value="Electronics">Electronics</option>
-                                <option value="Clothing">Clothing</option>
-                                <option value="Books">Books</option>
-                                <option value="Home">Home</option>
-                                <option value="Sports">Sports</option>
-                            </select>
+                        <div class="quick-action-card" onclick="showSection('products')">
+                            <div class="action-icon">
+                                <i class="fas fa-list"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>View Products</h4>
+                                <p>Manage inventory</p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="table-container">
-                        <table id="dashboard-products-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Image</th>
-                                    <th>Name</th>
-                                    <th>Category</th>
-                                    <th>Price</th>
-                                    <th>Stock</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="dashboard-products-tbody">
-                                <!-- Products will be loaded here -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- Pagination for Dashboard Products -->
-                    <div id="dashboard-pagination" class="pagination">
-                        <button id="dashboard-prev-page" onclick="changeDashboardPage(-1)" disabled>
-                            <i class="fas fa-chevron-left"></i> Previous
-                        </button>
-                        <div class="pagination-info">
-                            <span id="dashboard-page-info">Page 1 of 1</span>
-                            <span id="dashboard-products-count">(0 products)</span>
+                        <div class="quick-action-card" onclick="showSection('analytics')">
+                            <div class="action-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Analytics</h4>
+                                <p>View detailed reports</p>
+                            </div>
                         </div>
-                        <button id="dashboard-next-page" onclick="changeDashboardPage(1)" disabled>
-                            Next <i class="fas fa-chevron-right"></i>
-                        </button>
+                        <div class="quick-action-card" onclick="exportData()">
+                            <div class="action-icon">
+                                <i class="fas fa-download"></i>
+                            </div>
+                            <div class="action-content">
+                                <h4>Export Data</h4>
+                                <p>Download reports</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
+<!-- Recent Activity & Low Stock Alerts -->
+<div class="dashboard-footer">
+    <div class="dashboard-row">
+        <!-- Recent Products -->
+        <div class="dashboard-widget recent-products">
+            <div class="widget-header">
+                <h3>Recent Products</h3>
+                <button class="widget-action" onclick="showSection('products')">
+                    View All <i class="fas fa-arrow-right"></i>
+                </button>
+                            </div>
+                            <div class="widget-content">
+                                <div class="table-container">
+                                    <table id="dashboard-products-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Product</th>
+                                                <th>Category</th>
+                                                <th>Price</th>
+                                                <th>Stock</th>
+                                                <th>Status</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody id="dashboard-products-tbody">
+                                                <!-- Products will be loaded here -->
+                                            </tbody>
+                                            </table>
+                                            </div>
+                            </div>
+                            </div>
 
-                <!-- Low Stock Alerts -->
-                <div class="dashboard-alerts">
-                    <h3>Low Stock Alerts</h3>
-                    <div class="table-container">
-                        <table id="dashboard-low-stock-table">
-                            <thead>
-                                <tr>
-                                    <th>Product</th>
-                                    <th>Category</th>
-                                    <th>Current Stock</th>
-                                    <th>Price</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="dashboard-low-stock-tbody">
-                                <!-- Low stock products will be loaded here -->
-                            </tbody>
-                        </table>
+                        <!-- Low Stock Alerts -->
+                        <div class="dashboard-widget low-stock-alerts">
+                            <div class="widget-header">
+                                <h3>Low Stock Alerts</h3>
+                                <span class="alert-badge" id="alert-count">0</span>
+                                </div>
+                                <div class="widget-content">
+                                    <div class="alert-list" id="dashboard-low-stock-tbody">
+                                        <!-- Low stock alerts will be loaded here -->
+                                    </div>
+                                </div>
+                                </div>
                     </div>
                 </div>
             </section>
@@ -806,7 +967,6 @@
                     <h2>Add New Product</h2>
                     <p class="section-subtitle">Create a new product and see a live preview</p>
                 </div>
-                
                 <div class="add-product-container">
                     <!-- Form Section (Left) -->
                     <div class="product-form-section">
@@ -815,46 +975,42 @@
                             <form id="product-form" enctype="multipart/form-data">
                                 <div class="form-group">
                                     <label for="product-name">Product Name</label>
-                                    <input type="text" id="product-name" name="name" required 
-                                           placeholder="Enter product name">
-                                </div>
-                                <div class="form-group">
-                                    <label for="product-category">Category</label>
-                                    <select id="product-category" name="category" required>
-                                        <option value="">Select Category</option>
-                                        <option value="Electronics">Electronics</option>
-                                        <option value="Clothing">Clothing</option>
-                                        <option value="Books">Books</option>
-                                        <option value="Home">Home</option>
-                                        <option value="Sports">Sports</option>
-                                    </select>
-                                </div>
+                                    <input type="text" id="product-name" name="name" required placeholder="Enter product name">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="product-category">Category</label>
+                                        <select id="product-category" name="category" required>
+                                            <option value="">Select Category</option>
+                                            <option value="Electronics">Electronics</option>
+                                            <option value="Clothing">Clothing</option>
+                                            <option value="Books">Books</option>
+                                            <option value="Home">Home</option>
+                                            <option value="Sports">Sports</option>
+                                        </select>
+                                    </div>
                                 <div class="form-row">
                                     <div class="form-group">
                                         <label for="product-price">Price (KSh)</label>
-                                        <input type="number" id="product-price" name="price" step="0.01" required 
-                                               placeholder="0.00">
+                                        <input type="number" id="product-price" name="price" step="0.01" required placeholder="0.00">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="product-stock">Stock Quantity</label>
+                                        <input type="number" id="product-stock" name="stock" required placeholder="0">
+                                        </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="product-description">Description</label>
+                                    <textarea id="product-description" name="description" rows="4" placeholder="Enter product description..."></textarea>
                                     </div>
                                     <div class="form-group">
-                                        <label for="product-stock">Stock Quantity</label>
-                                        <input type="number" id="product-stock" name="stock" required 
-                                               placeholder="0">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="product-description">Description</label>
-                                    <textarea id="product-description" name="description" rows="4" 
-                                              placeholder="Enter product description..."></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label for="product-image">Product Image</label>
+                                        <label for="product-image">Product Image</label>
                                     <div class="file-input-wrapper">
                                         <input type="file" id="product-image" name="image" accept="image/*">
                                         <label for="product-image" class="file-input-label">
                                             <i class="fas fa-cloud-upload-alt"></i>
                                             <span>Choose Image</span>
                                         </label>
-                                    </div>
+                                        </div>
                                 </div>
                                 <div class="form-actions">
                                     <button type="submit" class="btn btn-primary">
@@ -862,65 +1018,65 @@
                                     </button>
                                     <button type="button" class="btn btn-secondary" onclick="resetForm()">
                                         <i class="fas fa-times"></i> Clear Form
-                                    </button>
-                                </div>
-                            </form>
+                                        </button>
+                                        </div>
+                                        </form>
                         </div>
-                    </div>
-
-                    <!-- Preview Section (Right) -->
-                    <div class="product-preview-section">
-                        <div class="preview-container">
-                            <h3 class="preview-title">Live Preview</h3>
-                            <div class="product-preview-card">
-                                <div class="preview-image-container">
-                                    <div id="preview-image" class="preview-image">
-                                        <i class="fas fa-image"></i>
-                                        <span>No image selected</span>
-                                    </div>
-                                </div>
-                                <div class="preview-content">
-                                    <div class="preview-header">
-                                        <h4 id="preview-name" class="preview-product-name">Product Name</h4>
-                                        <span id="preview-category" class="preview-category">Category</span>
-                                    </div>
-                                    <div class="preview-price-section">
-                                        <span id="preview-price" class="preview-price">KSh 0.00</span>
-                                        <div class="preview-stock">
-                                            <i class="fas fa-box"></i>
-                                            <span id="preview-stock">0 in stock</span>
+                        </div>
+                        
+                        <!-- Preview Section (Right) -->
+                        <div class="product-preview-section">
+                            <div class="preview-container">
+                                <h3 class="preview-title">Live Preview</h3>
+                                <div class="product-preview-card">
+                                    <div class="preview-image-container">
+                                        <div id="preview-image" class="preview-image">
+                                            <i class="fas fa-image"></i>
+                                            <span>No image selected</span>
                                         </div>
                                     </div>
-                                    <div class="preview-description">
-                                        <p id="preview-description">Product description will appear here...</p>
+                                    <div class="preview-content">
+                                        <div class="preview-header">
+                                            <h4 id="preview-name" class="preview-product-name">Product Name</h4>
+                                            <span id="preview-category" class="preview-category">Category</span>
+                                        </div>
+                                        <div class="preview-price-section">
+                                            <span id="preview-price" class="preview-price">KSh 0.00</span>
+                                            <div class="preview-stock">
+                                                <i class="fas fa-box"></i>
+                                                <span id="preview-stock">0 in stock</span>
+                                            </div>
+                                        </div>
+                                        <div class="preview-description">
+                                            <p id="preview-description">Product description will appear here...</p>
+                                        </div>
+                                        <div class="preview-badges">
+                                            <span id="preview-stock-badge" class="stock-badge">Out of Stock</span>
+                                            <span id="preview-value-badge" class="value-badge">KSh 0.00 Total Value</span>
+                                        </div>
                                     </div>
-                                    <div class="preview-badges">
-                                        <span id="preview-stock-badge" class="stock-badge">Out of Stock</span>
-                                        <span id="preview-value-badge" class="value-badge">KSh 0.00 Total Value</span>
+                                </div>
+                        
+                                <!-- Preview Stats -->
+                                <div class="preview-stats">
+                                    <div class="preview-stat">
+                                        <i class="fas fa-tag"></i>
+                                        <span>Price per unit</span>
+                                        <strong id="preview-unit-price">KSh 0.00</strong>
                                     </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Preview Stats -->
-                            <div class="preview-stats">
-                                <div class="preview-stat">
-                                    <i class="fas fa-tag"></i>
-                                    <span>Price per unit</span>
-                                    <strong id="preview-unit-price">KSh 0.00</strong>
-                                </div>
-                                <div class="preview-stat">
-                                    <i class="fas fa-warehouse"></i>
-                                    <span>Total inventory value</span>
-                                    <strong id="preview-total-value">KSh 0.00</strong>
-                                </div>
-                                <div class="preview-stat">
-                                    <i class="fas fa-chart-line"></i>
-                                    <span>Stock status</span>
-                                    <strong id="preview-status">Not set</strong>
+                                    <div class="preview-stat">
+                                        <i class="fas fa-warehouse"></i>
+                                        <span>Total inventory value</span>
+                                        <strong id="preview-total-value">KSh 0.00</strong>
+                                    </div>
+                                    <div class="preview-stat">
+                                        <i class="fas fa-chart-line"></i>
+                                        <span>Stock status</span>
+                                        <strong id="preview-status">Not set</strong>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
                 </div>
             </section>
         </div>
