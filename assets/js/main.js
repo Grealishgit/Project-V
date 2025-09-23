@@ -225,17 +225,24 @@ function updateDashboardAnalytics(analytics) {
 
 function updateDashboardCategoryBreakdown(categories) {
     const container = document.getElementById('dashboard-category-breakdown');
+    if (!container) return;
+
     container.innerHTML = '';
+
+    if (!categories || categories.length === 0) {
+        container.innerHTML = '<div class="no-data">No category data available</div>';
+        return;
+    }
 
     categories.slice(0, 5).forEach(category => {
         const categoryItem = document.createElement('div');
         categoryItem.className = 'category-item';
         categoryItem.innerHTML = `
             <div class="category-info">
-                <span class="category-name">${category.category}</span>
-                <span class="category-count">${category.product_count} products</span>
+                <span class="category-name">${category.category || 'Unknown'}</span>
+                <span class="category-count">${category.product_count || 0} products</span>
             </div>
-            <div class="category-value">${category.category_value || 'KSh 0'}</div>
+            <div class="category-value">${formatKSh(category.category_value || 0)}</div>
         `;
         container.appendChild(categoryItem);
     });
@@ -266,28 +273,35 @@ function loadDashboardLowStock() {
 }
 
 function updateDashboardLowStockTable(products) {
-    const tbody = document.getElementById('dashboard-low-stock-tbody');
-    tbody.innerHTML = '';
+    const container = document.getElementById('dashboard-low-stock-tbody');
+    if (!container) return;
 
-    if (products.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">No low stock items</td></tr>';
+    container.innerHTML = '';
+
+    if (!products || products.length === 0) {
+        container.innerHTML = '<div class="no-data">No low stock items</div>';
         return;
     }
 
     products.slice(0, 5).forEach(product => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${product.name}</td>
-            <td><span class="category-badge">${product.category}</span></td>
-            <td><span class="stock-badge ${product.stock <= 5 ? 'critical' : 'low'}">${product.stock}</span></td>
-            <td>${formatKSh(product.price)}</td>
-            <td>
-                <button class="btn btn-sm btn-warning" onclick="editProduct(${product.id})">
-                    <i class="fas fa-edit"></i> Edit
+        const alertItem = document.createElement('div');
+        alertItem.className = 'alert-item';
+        alertItem.innerHTML = `
+            <div class="alert-content">
+                <div class="alert-title">${product.name}</div>
+                <div class="alert-details">
+                    <span class="category-badge">${product.category}</span>
+                    <span class="stock-badge ${product.stock <= 5 ? 'critical' : 'low'}">${product.stock} left</span>
+                    <span class="price-badge">${formatKSh(product.price)}</span>
+                </div>
+            </div>
+            <div class="alert-actions">
+                <button class="btn btn-sm btn-warning" onclick="editProduct(${product.id})" title="Edit Product">
+                    <i class="fas fa-edit"></i>
                 </button>
-            </td>
+            </div>
         `;
-        tbody.appendChild(row);
+        container.appendChild(alertItem);
     });
 }
 
@@ -328,36 +342,31 @@ function loadDashboardProducts() {
 
 function displayDashboardProducts(products) {
     const tbody = document.getElementById('dashboard-products-tbody');
+    if (!tbody) return;
+
     tbody.innerHTML = '';
 
-    if (products.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No products found</td></tr>';
+    if (!products || products.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">No products found</td></tr>';
         return;
     }
 
-    products.forEach(product => {
+    products.slice(0, 5).forEach(product => {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${product.id}</td>
             <td>
-                ${product.image ?
-                `<img src="uploads/${product.image}" alt="${product.name}" class="product-image">` :
-                '<div class="product-image" style="background: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #666;">No Image</div>'
-            }
+                <div class="product-info">
+                    ${product.image ?
+            `<img src="uploads/${product.image}" alt="${product.name}" class="product-thumb">` :
+            '<div class="product-thumb no-image"><i class="fas fa-box"></i></div>'
+                    }
+                    <span class="product-name">${product.name}</span>
+                </div>
             </td>
-            <td>${product.name}</td>
             <td><span class="category-badge">${product.category}</span></td>
             <td>${product.formatted_price || formatKSh(product.price)}</td>
             <td><span class="stock-badge ${product.stock <= 10 ? 'low-stock' : ''}">${product.stock}</span></td>
             <td><span class="badge ${product.stock > 0 ? 'in-stock' : 'out-of-stock'}">${product.stock > 0 ? 'In Stock' : 'Out of Stock'}</span></td>
-            <td>
-                <button class="btn btn-sm btn-warning" onclick="editProduct(${product.id})" title="Edit Product">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn btn-sm btn-danger" onclick="deleteProduct(${product.id})" title="Delete Product">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
         `;
         tbody.appendChild(row);
     });
@@ -367,13 +376,18 @@ function updateDashboardPagination(stats) {
     dashboardProductsTotal = stats.total_products || 0;
     const totalPages = Math.ceil(dashboardProductsTotal / dashboardProductsPerPage);
 
-    // Update pagination info
-    document.getElementById('dashboard-page-info').textContent = `Page ${dashboardCurrentPage} of ${totalPages}`;
-    document.getElementById('dashboard-products-count').textContent = `(${dashboardProductsTotal} products)`;
+    // Update pagination info (only if elements exist)
+    const pageInfoEl = document.getElementById('dashboard-page-info');
+    const productsCountEl = document.getElementById('dashboard-products-count');
+    const prevBtnEl = document.getElementById('dashboard-prev-page');
+    const nextBtnEl = document.getElementById('dashboard-next-page');
 
-    // Update button states
-    document.getElementById('dashboard-prev-page').disabled = dashboardCurrentPage === 1;
-    document.getElementById('dashboard-next-page').disabled = dashboardCurrentPage >= totalPages;
+    if (pageInfoEl) pageInfoEl.textContent = `Page ${dashboardCurrentPage} of ${totalPages}`;
+    if (productsCountEl) productsCountEl.textContent = `(${dashboardProductsTotal} products)`;
+
+    // Update button states (only if buttons exist)
+    if (prevBtnEl) prevBtnEl.disabled = dashboardCurrentPage === 1;
+    if (nextBtnEl) nextBtnEl.disabled = dashboardCurrentPage >= totalPages;
 }
 
 function changeDashboardPage(direction) {
@@ -2720,6 +2734,16 @@ function loadDashboardStats() {
 
                 // Update progress bars with animation
                 updateProgressBars(data);
+
+                // Update category distribution if available
+                if (data.categoryBreakdown) {
+                    updateCategoryChart(data.categoryBreakdown);
+                    updateDashboardCategoryBreakdown(data.categoryBreakdown);
+                }
+
+                // Load additional dashboard sections
+                loadDashboardLowStock();
+                loadDashboardProducts();
             }
         })
         .catch(error => {
@@ -2765,27 +2789,39 @@ function updateRevenueMetrics(data) {
     const monthPotential = todayPotential * 30;
 
     setTimeout(() => {
-        document.getElementById('today-potential').textContent = formatKSh(todayPotential);
-        document.getElementById('week-potential').textContent = formatKSh(weekPotential);
-        document.getElementById('month-potential').textContent = formatKSh(monthPotential);
+        const todayEl = document.getElementById('today-potential');
+        const weekEl = document.getElementById('week-potential');
+        const monthEl = document.getElementById('month-potential');
+
+        if (todayEl) todayEl.textContent = formatKSh(todayPotential);
+        if (weekEl) weekEl.textContent = formatKSh(weekPotential);
+        if (monthEl) monthEl.textContent = formatKSh(monthPotential);
     }, 500);
 }
 
 // Update stock metrics
 function updateStockMetrics(data) {
     setTimeout(() => {
-        document.getElementById('dashboard-in-stock').textContent = data.inStock || 0;
-        document.getElementById('dashboard-low-stock').textContent = data.lowStock || 0;
-        document.getElementById('dashboard-out-stock').textContent = data.outOfStock || 0;
+        const inStockEl = document.getElementById('dashboard-in-stock');
+        const lowStockEl = document.getElementById('dashboard-low-stock');
+        const outStockEl = document.getElementById('dashboard-out-stock');
+
+        if (inStockEl) inStockEl.textContent = data.inStock || 0;
+        if (lowStockEl) lowStockEl.textContent = data.lowStock || 0;
+        if (outStockEl) outStockEl.textContent = data.outOfStock || 0;
     }, 300);
 }
 
 // Update price distribution
 function updatePriceDistribution(data) {
     setTimeout(() => {
-        document.getElementById('dashboard-price-under-1k').textContent = data.priceUnder1k || 0;
-        document.getElementById('dashboard-price-1k-5k').textContent = data.price1k5k || 0;
-        document.getElementById('dashboard-price-over-5k').textContent = data.priceOver5k || 0;
+        const under1kEl = document.getElementById('dashboard-price-under-1k');
+        const between1k5kEl = document.getElementById('dashboard-price-1k-5k');
+        const over5kEl = document.getElementById('dashboard-price-over-5k');
+
+        if (under1kEl) under1kEl.textContent = data.priceUnder1k || 0;
+        if (between1k5kEl) between1k5kEl.textContent = data.price1k5k || 0;
+        if (over5kEl) over5kEl.textContent = data.priceOver5k || 0;
     }, 700);
 }
 
@@ -2875,36 +2911,49 @@ function initializeDashboardCharts() {
         });
     }
 
-    // Category Chart
+    // Category Chart - Will be created dynamically with real data
+    // Static chart removed to prevent conflicts with dynamic chart
+}
+
+// Update category chart with real data
+function updateCategoryChart(categoryData) {
     const categoryCtx = document.getElementById('categoryChart');
-    if (categoryCtx && typeof Chart !== 'undefined') {
-        new Chart(categoryCtx, {
-            type: 'pie',
-            data: {
-                labels: ['Electronics', 'Clothing', 'Books', 'Home', 'Sports'],
-                datasets: [{
-                    data: [30, 25, 20, 15, 10],
-                    backgroundColor: [
-                        '#667eea',
-                        '#56cc9d',
-                        '#ffa726',
-                        '#4facfe',
-                        '#f093fb'
-                    ],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
+    if (!categoryCtx || typeof Chart === 'undefined' || !categoryData) return;
+
+    // Extract data for chart
+    const labels = categoryData.map(cat => cat.category || 'Unknown');
+    const data = categoryData.map(cat => cat.product_count || 0);
+    const colors = [
+        '#667eea', '#56cc9d', '#ffa726', '#4facfe', '#f093fb',
+        '#ff7979', '#6c5ce7', '#fdcb6e', '#e17055', '#fd79a8'
+    ];
+
+    // Destroy existing chart if it exists
+    if (window.categoryChart && typeof window.categoryChart.destroy === 'function') {
+        window.categoryChart.destroy();
+    }
+
+    // Create new chart with real data
+    window.categoryChart = new Chart(categoryCtx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: colors.slice(0, labels.length),
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom'
                 }
             }
-        });
-    }
+        }
+    });
 }
 
 // Enhanced showSection with dashboard initialization

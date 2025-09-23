@@ -16,6 +16,7 @@ class DashboardAPI {
     public function handleRequest() {
         try {
             $stats = $this->product->getStats();
+            $categoryBreakdown = $this->product->getCategoryBreakdown();
 
             // Format the response to match JavaScript expectations
             $response = [
@@ -31,7 +32,10 @@ class DashboardAPI {
                 'inStock' => $stats['in_stock_products'],
                 'outOfStock' => $stats['total_products'] - $stats['in_stock_products'],
                 'totalInventoryValue' => $stats['total_inventory_value'],
-                'averagePrice' => $stats['avg_price']
+                'averagePrice' => $stats['avg_price'],
+
+                // Category breakdown for charts and distribution
+                'categoryBreakdown' => $categoryBreakdown
             ];
 
             $this->sendResponse($response);
