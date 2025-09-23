@@ -81,7 +81,10 @@ class ProductSearch {
                     COALESCE(AVG(price), 0) as avg_price,
                     COALESCE(MIN(price), 0) as min_price,
                     COALESCE(MAX(price), 0) as max_price,
-                    COALESCE(SUM(stock), 0) as total_stock
+                    COALESCE(SUM(stock), 0) as total_stock,
+                    COALESCE(SUM(price * stock), 0) as total_inventory_value,
+                    COUNT(DISTINCT category) as categories_count,
+                    COUNT(CASE WHEN stock <= 10 THEN 1 END) as low_stock_products
                 FROM products WHERE 1=1";
         
         // Apply same filters as search

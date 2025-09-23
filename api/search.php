@@ -90,7 +90,10 @@ class SearchAPI {
                     'avg_price' => 0,
                     'min_price' => 0,
                     'max_price' => 0,
-                    'total_stock' => 0
+                    'total_stock' => 0,
+                    'total_inventory_value' => 0,
+                    'categories_count' => 0,
+                    'low_stock_products' => 0
                 ];
             }
             
@@ -114,7 +117,10 @@ class SearchAPI {
                 'avg_price' => 'KSh ' . number_format($stats['avg_price'], 2),
                 'min_price' => 'KSh ' . number_format($stats['min_price'], 2),
                 'max_price' => 'KSh ' . number_format($stats['max_price'], 2),
-                'total_stock' => $stats['total_stock']
+                'total_stock' => $stats['total_stock'],
+                'total_inventory_value' => 'KSh ' . number_format($stats['total_inventory_value'], 2),
+                'categories_count' => $stats['categories_count'],
+                'low_stock_products' => $stats['low_stock_products']
             ]
         ]);
     }

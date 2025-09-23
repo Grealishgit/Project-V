@@ -8,6 +8,18 @@ let dashboardCurrentPage = 1;
 let dashboardFilters = {};
 let dashboardProductsTotal = 0;
 let dashboardProductsPerPage = 10;
+// Products pagination variables
+let productsPerPage = 10;
+let totalProducts = 0;
+let totalPages = 0;
+let productsStats = {
+    totalCount: 0,
+    totalStock: 0,
+    inventoryValue: 0,
+    avgPrice: 0,
+    categoriesCount: 0,
+    lowStockCount: 0
+};
 
 // Initialize the dashboard
 document.addEventListener('DOMContentLoaded', function () {
@@ -18,6 +30,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Initialize form submission handlers
     initializeEventListeners();
+
+    // Initialize analytics if on analytics page
+    if (document.querySelector('.content-section.active')?.id === 'analytics') {
+        initializeAnalytics();
+    }
 });
 
 // Initialize event listeners
@@ -848,8 +865,8 @@ function performSearch() {
         low_stock: lowStockOnly,
         sort_by: sortBy,
         sort_order: sortOrder,
-        limit: 20,
-        offset: (currentPage - 1) * 20
+        limit: productsPerPage,
+        offset: (currentPage - 1) * productsPerPage
     };
 
     // Build query string - only add parameters that have values
@@ -867,6 +884,8 @@ function performSearch() {
             if (data.success) {
                 displaySearchResults(data.products);
                 updateSearchStats(data.stats);
+                updateProductsKPI(data.stats);
+                updateProductsPagination(data.stats);
             } else {
                 showMessage('Search failed: ' + data.message, 'error');
             }
@@ -968,51 +987,99 @@ function exportFilteredResults() {
 
 // Analytics functionality
 function loadAnalytics() {
+    // Show loading state
+    const analyticsSection = document.getElementById('analytics');
+    if (analyticsSection) {
+        // Add loading class if available
+        analyticsSection.classList.add('loading');
+    }
+
     fetch('api/analytics.php')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 updateAnalyticsDisplay(data.analytics);
+
+                // Initialize charts if chart manager is available
+                if (typeof chartManager !== 'undefined' && chartManager) {
+                    if (data.analytics.products) {
+                        chartManager.updateStockChart(data.analytics.products);
+                    }
+                    if (data.analytics.price_analysis) {
+                        chartManager.updatePriceChart(data.analytics.price_analysis);
+                    }
+                }
             } else {
-                showMessage('Failed to load analytics: ' + data.message, 'error');
+                console.error('Analytics API error:', data.message);
+                showMessage('Failed to load analytics: ' + (data.message || 'Unknown error'), 'error');
             }
         })
         .catch(error => {
             console.error('Analytics error:', error);
-            showMessage('Failed to load analytics', 'error');
+            showMessage('Failed to load analytics. Please check your connection and try again.', 'error');
+        })
+        .finally(() => {
+            // Remove loading state
+            if (analyticsSection) {
+                analyticsSection.classList.remove('loading');
+            }
         });
 }
 
 function updateAnalyticsDisplay(analytics) {
+    // Helper function to safely update element content
+    function safeUpdateElement(id, value) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = value;
+        }
+    }
+
     // Update product stats
     if (analytics.products) {
-        document.getElementById('analytics-total-products').textContent = analytics.products.total_products;
-        document.getElementById('analytics-in-stock').textContent = analytics.products.in_stock_products;
-        document.getElementById('analytics-low-stock').textContent = analytics.products.low_stock_products;
-        document.getElementById('analytics-inventory-value').textContent = analytics.products.total_inventory_value; // Already formatted
+        safeUpdateElement('analytics-total-products', analytics.products.total_products);
+        safeUpdateElement('analytics-in-stock', analytics.products.in_stock_products);
+        safeUpdateElement('analytics-low-stock', analytics.products.low_stock_products);
+        safeUpdateElement('analytics-inventory-value', analytics.products.total_inventory_value);
+
+        // Update KPI cards if they exist
+        safeUpdateElement('kpi-total-products', analytics.products.total_products);
+        safeUpdateElement('kpi-in-stock', analytics.products.in_stock_products);
+        safeUpdateElement('kpi-low-stock', analytics.products.low_stock_products);
+        safeUpdateElement('kpi-inventory-value', analytics.products.total_inventory_value);
     }
 
     // Update price analysis
     if (analytics.price_analysis) {
         const priceAnalysis = analytics.price_analysis;
-        document.getElementById('analytics-avg-price').textContent = priceAnalysis.avg_price; // Already formatted
-        document.getElementById('analytics-price-range').textContent = `${priceAnalysis.min_price} - ${priceAnalysis.max_price}`; // Already formatted
+        safeUpdateElement('analytics-avg-price', priceAnalysis.avg_price);
+        safeUpdateElement('analytics-price-range', `${priceAnalysis.min_price} - ${priceAnalysis.max_price}`);
 
-        document.getElementById('price-under-1k').textContent = priceAnalysis.under_1k || 0;
-        document.getElementById('price-1k-5k').textContent = priceAnalysis.between_1k_5k || 0;
-        document.getElementById('price-5k-10k').textContent = priceAnalysis.between_5k_10k || 0;
-        document.getElementById('price-over-10k').textContent = priceAnalysis.over_10k || 0;
+        safeUpdateElement('price-under-1k', priceAnalysis.under_1k || 0);
+        safeUpdateElement('price-1k-5k', priceAnalysis.between_1k_5k || 0);
+        safeUpdateElement('price-5k-10k', priceAnalysis.between_5k_10k || 0);
+        safeUpdateElement('price-over-10k', priceAnalysis.over_10k || 0);
+
+        // Update KPI price elements
+        safeUpdateElement('kpi-avg-price', priceAnalysis.avg_price);
+        safeUpdateElement('kpi-min-price', priceAnalysis.min_price);
+        safeUpdateElement('kpi-max-price', priceAnalysis.max_price);
     }
 
     // Update stock analysis
     if (analytics.stock_analysis) {
         const stockAnalysis = analytics.stock_analysis;
-        document.getElementById('analytics-total-stock').textContent = stockAnalysis.total_stock || 0;
+        safeUpdateElement('analytics-total-stock', stockAnalysis.total_stock || 0);
 
-        document.getElementById('stock-out').textContent = stockAnalysis.out_of_stock || 0;
-        document.getElementById('stock-low').textContent = stockAnalysis.low_stock || 0;
-        document.getElementById('stock-medium').textContent = stockAnalysis.medium_stock || 0;
-        document.getElementById('stock-high').textContent = stockAnalysis.high_stock || 0;
+        safeUpdateElement('stock-out', stockAnalysis.out_of_stock || 0);
+        safeUpdateElement('stock-low', stockAnalysis.low_stock || 0);
+        safeUpdateElement('stock-medium', stockAnalysis.medium_stock || 0);
+        safeUpdateElement('stock-high', stockAnalysis.high_stock || 0);
     }
 
     // Update category breakdown
@@ -1472,20 +1539,250 @@ function exportInventoryReport() {
         });
 }
 
-// Pagination functions
+// Enhanced pagination functions
 function changePage(direction) {
-    currentPage += direction;
-    if (currentPage < 1) currentPage = 1;
+    const newPage = currentPage + direction;
+    if (newPage >= 1 && newPage <= totalPages) {
+        currentPage = newPage;
+        performSearch();
+    }
+}
 
+function goToFirstPage() {
+    if (currentPage !== 1) {
+        currentPage = 1;
+        performSearch();
+    }
+}
+
+function goToLastPage() {
+    if (currentPage !== totalPages && totalPages > 0) {
+        currentPage = totalPages;
+        performSearch();
+    }
+}
+
+function jumpToPage() {
+    const pageInput = document.getElementById('page-jump-input');
+    const page = parseInt(pageInput.value);
+    if (page >= 1 && page <= totalPages) {
+        currentPage = page;
+        performSearch();
+        pageInput.value = '';
+    }
+}
+
+function handlePageJump(event) {
+    if (event.key === 'Enter') {
+        jumpToPage();
+    }
+}
+
+function changeProductsPerPage() {
+    const select = document.getElementById('products-per-page');
+    productsPerPage = parseInt(select.value);
+    currentPage = 1; // Reset to first page
     performSearch();
-    updatePageInfo();
+}
+
+function goToPage(page) {
+    if (page >= 1 && page <= totalPages) {
+        currentPage = page;
+        performSearch();
+    }
 }
 
 function updatePageInfo() {
-    document.getElementById('page-info').textContent = `Page ${currentPage}`;
+    // This function is kept for backward compatibility
+    updateProductsPagination();
+}
+
+// Update Products KPI Cards
+function updateProductsKPI(stats) {
+    // Helper function to safely update elements
+    function safeUpdate(id, value) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.textContent = value;
+        }
+    }
+
+    // Helper function to animate value changes
+    function animateValue(element, start, end, duration = 1000) {
+        if (!element) return;
+
+        const startTime = performance.now();
+        const startValue = parseInt(start) || 0;
+        const endValue = parseInt(end) || 0;
+
+        function updateValue(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+
+            const currentValue = Math.floor(startValue + (endValue - startValue) * progress);
+            element.textContent = currentValue;
+
+            if (progress < 1) {
+                requestAnimationFrame(updateValue);
+            }
+        }
+
+        requestAnimationFrame(updateValue);
+    }
+
+    if (stats) {
+        // Update basic stats
+        safeUpdate('products-total-count', stats.total_products || 0);
+        safeUpdate('products-total-stock', stats.total_stock || 0);
+        safeUpdate('products-inventory-value', stats.total_inventory_value || 'KSh 0');
+        safeUpdate('products-avg-price', stats.avg_price || 'KSh 0');
+        safeUpdate('products-categories-count', stats.categories_count || 0);
+        safeUpdate('products-low-stock-count', stats.low_stock_products || 0);
+
+        // Update global stats for comparison
+        productsStats = {
+            totalCount: stats.total_products || 0,
+            totalStock: stats.total_stock || 0,
+            inventoryValue: parseFloat((stats.total_inventory_value || '0').replace(/[^\d.]/g, '')),
+            avgPrice: parseFloat((stats.avg_price || '0').replace(/[^\d.]/g, '')),
+            categoriesCount: stats.categories_count || 0,
+            lowStockCount: stats.low_stock_products || 0
+        };
+
+        // Update trend indicators (simplified for now)
+        updateTrendIndicators();
+    }
+}
+
+// Update trend indicators
+function updateTrendIndicators() {
+    // This is a simplified version - in a real app, you'd compare with historical data
+    const trends = [
+        { id: 'products-trend', value: '+2.1%', type: 'positive' },
+        { id: 'stock-trend', value: '-1.5%', type: 'negative' },
+        { id: 'value-trend', value: '+5.3%', type: 'positive' },
+        { id: 'price-trend', value: '+0.8%', type: 'positive' },
+        { id: 'categories-trend', value: '0%', type: 'neutral' },
+        { id: 'low-stock-trend', value: productsStats.lowStockCount > 0 ? 'Alert' : 'Clear', type: productsStats.lowStockCount > 0 ? 'warning' : 'positive' }
+    ];
+
+    trends.forEach(trend => {
+        const element = document.getElementById(trend.id);
+        if (element) {
+            element.textContent = trend.value;
+            element.className = `trend-indicator ${trend.type}`;
+
+            // Update icon based on type
+            const icon = element.querySelector('i');
+            if (icon) {
+                icon.className = trend.type === 'positive' ? 'fas fa-arrow-up' :
+                    trend.type === 'negative' ? 'fas fa-arrow-down' :
+                        trend.type === 'warning' ? 'fas fa-exclamation' : 'fas fa-minus';
+            }
+        }
+    });
+}
+
+// Enhanced pagination display
+function updateProductsPagination(stats) {
+    if (!stats) return;
+
+    totalProducts = stats.total_products || 0;
+    totalPages = Math.ceil(totalProducts / productsPerPage);
+
+    // Update pagination info
+    const showingStart = totalProducts > 0 ? ((currentPage - 1) * productsPerPage) + 1 : 0;
+    const showingEnd = Math.min(currentPage * productsPerPage, totalProducts);
+
+    document.getElementById('products-showing-start').textContent = showingStart;
+    document.getElementById('products-showing-end').textContent = showingEnd;
+    document.getElementById('products-total-results').textContent = totalProducts;
 
     // Update button states
-    document.getElementById('prev-page').disabled = currentPage === 1;
+    document.getElementById('products-first-page').disabled = currentPage === 1;
+    document.getElementById('products-prev-page').disabled = currentPage === 1;
+    document.getElementById('products-next-page').disabled = currentPage >= totalPages;
+    document.getElementById('products-last-page').disabled = currentPage >= totalPages;
+
+    // Update page jump input max value
+    const pageJumpInput = document.getElementById('page-jump-input');
+    if (pageJumpInput) {
+        pageJumpInput.max = totalPages;
+        pageJumpInput.placeholder = `1-${totalPages}`;
+    }
+
+    // Generate page numbers
+    generatePageNumbers();
+}
+
+// Generate page number buttons
+function generatePageNumbers() {
+    const pageNumbersContainer = document.getElementById('products-page-numbers');
+    if (!pageNumbersContainer) return;
+
+    pageNumbersContainer.innerHTML = '';
+
+    if (totalPages <= 1) return;
+
+    const maxVisiblePages = 7;
+    let startPage, endPage;
+
+    if (totalPages <= maxVisiblePages) {
+        startPage = 1;
+        endPage = totalPages;
+    } else {
+        const maxPagesBeforeCurrentPage = Math.floor(maxVisiblePages / 2);
+        const maxPagesAfterCurrentPage = Math.ceil(maxVisiblePages / 2) - 1;
+
+        if (currentPage <= maxPagesBeforeCurrentPage) {
+            startPage = 1;
+            endPage = maxVisiblePages;
+        } else if (currentPage + maxPagesAfterCurrentPage >= totalPages) {
+            startPage = totalPages - maxVisiblePages + 1;
+            endPage = totalPages;
+        } else {
+            startPage = currentPage - maxPagesBeforeCurrentPage;
+            endPage = currentPage + maxPagesAfterCurrentPage;
+        }
+    }
+
+    // Add first page and ellipsis if needed
+    if (startPage > 1) {
+        pageNumbersContainer.appendChild(createPageButton(1));
+        if (startPage > 2) {
+            pageNumbersContainer.appendChild(createEllipsis());
+        }
+    }
+
+    // Add page number buttons
+    for (let i = startPage; i <= endPage; i++) {
+        pageNumbersContainer.appendChild(createPageButton(i));
+    }
+
+    // Add ellipsis and last page if needed
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            pageNumbersContainer.appendChild(createEllipsis());
+        }
+        pageNumbersContainer.appendChild(createPageButton(totalPages));
+    }
+}
+
+// Create page button element
+function createPageButton(page) {
+    const button = document.createElement('button');
+    button.className = `page-number ${page === currentPage ? 'active' : ''}`;
+    button.textContent = page;
+    button.onclick = () => goToPage(page);
+    return button;
+}
+
+// Create ellipsis element
+function createEllipsis() {
+    const span = document.createElement('span');
+    span.className = 'page-number ellipsis';
+    span.textContent = '...';
+    return span;
 }
 
 // Dark mode toggle
@@ -1550,6 +1847,30 @@ function debounce(func, wait) {
 // Auto-search with debounce
 const debouncedSearch = debounce(performSearch, 300);
 
+// Global analytics variables
+let chartManager = null;
+let analyticsManager = null;
+
+// Initialize analytics when needed
+function initializeAnalytics() {
+    // Check if Chart.js is loaded
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js is not loaded. Please ensure Chart.js is included before main.js');
+        return;
+    }
+
+    if (!chartManager) {
+        console.log('Initializing Chart Manager...');
+        chartManager = new AnalyticsChartManager();
+        chartManager.initCharts();
+    }
+    if (!analyticsManager) {
+        console.log('Initializing Analytics Manager...');
+        analyticsManager = new AnalyticsDataManager();
+        analyticsManager.init();
+    }
+}
+
 // Enhanced showSection function
 const originalShowSection = showSection;
 showSection = function (sectionId) {
@@ -1557,6 +1878,9 @@ showSection = function (sectionId) {
 
     // Load specific data when sections are shown
     if (sectionId === 'analytics') {
+        // Initialize analytics components first
+        initializeAnalytics();
+        // Then load data
         loadAnalytics();
     } else if (sectionId === 'products') {
         performSearch(); // Use enhanced search instead of loadProducts
@@ -1624,3 +1948,640 @@ const originalShowMessage = showMessage;
 showMessage = function (message, type) {
     showNotification(message, type);
 };
+
+// Modern Analytics Chart Management
+class AnalyticsChartManager {
+    constructor() {
+        this.charts = {};
+        this.chartColors = {
+            primary: '#667eea',
+            secondary: '#764ba2',
+            success: '#27ae60',
+            warning: '#f39c12',
+            danger: '#e74c3c',
+            info: '#3498db'
+        };
+    }
+
+    // Initialize all charts
+    initCharts() {
+        try {
+            console.log('Initializing charts...');
+            this.initStockChart();
+            this.initPriceChart();
+            this.initTrendChart();
+            console.log('Charts initialized successfully');
+        } catch (error) {
+            console.error('Error initializing charts:', error);
+        }
+    }
+
+    // Stock Overview Chart
+    initStockChart() {
+        const ctx = document.getElementById('stock-chart');
+        if (!ctx) {
+            console.warn('Stock chart canvas not found');
+            return;
+        }
+
+        console.log('Creating stock chart...');
+        this.charts.stock = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['In Stock', 'Low Stock', 'Out of Stock'],
+                datasets: [{
+                    data: [0, 0, 0],
+                    backgroundColor: [
+                        this.chartColors.success,
+                        this.chartColors.warning,
+                        this.chartColors.danger
+                    ],
+                    borderWidth: 0,
+                    cutout: '70%'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: (context) => {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    animateScale: true,
+                    duration: 1000
+                }
+            }
+        });
+    }
+
+    // Price Distribution Chart
+    initPriceChart() {
+        const ctx = document.getElementById('price-chart');
+        if (!ctx) {
+            console.warn('Price chart canvas not found');
+            return;
+        }
+
+        console.log('Creating price chart...');
+        this.charts.price = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Under 1K', '1K-5K', '5K-10K', 'Over 10K'],
+                datasets: [{
+                    data: [0, 0, 0, 0],
+                    backgroundColor: [
+                        this.chartColors.danger,
+                        this.chartColors.warning,
+                        this.chartColors.info,
+                        this.chartColors.success
+                    ],
+                    borderRadius: 8,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        cornerRadius: 8
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)'
+                        },
+                        ticks: {
+                            stepSize: 1
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+    }
+
+    // Inventory Trend Chart
+    initTrendChart() {
+        const ctx = document.getElementById('trend-chart');
+        if (!ctx) {
+            console.warn('Trend chart canvas not found');
+            return;
+        }
+
+        console.log('Creating trend chart...');
+        // Generate sample trend data for last 30 days
+        const trendData = this.generateTrendData();
+
+        this.charts.trend = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: trendData.labels,
+                datasets: [{
+                    label: 'Inventory Value',
+                    data: trendData.values,
+                    borderColor: this.chartColors.primary,
+                    backgroundColor: `${this.chartColors.primary}20`,
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: this.chartColors.primary,
+                    pointBorderColor: 'white',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: 'white',
+                        bodyColor: 'white',
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: (context) => {
+                                return `Value: KSh ${context.parsed.y.toLocaleString()}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0,0,0,0.05)'
+                        },
+                        ticks: {
+                            callback: function (value) {
+                                return 'KSh ' + value.toLocaleString();
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                },
+                animation: {
+                    duration: 1500,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+    }
+
+    // Generate sample trend data
+    generateTrendData() {
+        const labels = [];
+        const values = [];
+        const now = new Date();
+
+        for (let i = 29; i >= 0; i--) {
+            const date = new Date(now);
+            date.setDate(date.getDate() - i);
+            labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+
+            // Generate realistic trend data with some variation
+            const baseValue = 250000 + (Math.sin(i / 10) * 50000);
+            const variation = (Math.random() - 0.5) * 30000;
+            values.push(Math.max(0, Math.round(baseValue + variation)));
+        }
+
+        return { labels, values };
+    }
+
+    // Update stock chart data
+    updateStockChart(data) {
+        if (!this.charts.stock) return;
+
+        const inStock = data.in_stock_products || 0;
+        const lowStock = data.low_stock_products || 0;
+        const outOfStock = (data.total_products || 0) - inStock - lowStock;
+
+        this.charts.stock.data.datasets[0].data = [inStock, lowStock, outOfStock];
+        this.charts.stock.update('active');
+
+        // Update legend values with null checks
+        const inStockElement = document.getElementById('analytics-in-stock');
+        const lowStockElement = document.getElementById('legend-low-stock');
+        const outStockElement = document.getElementById('legend-out-stock');
+
+        if (inStockElement) inStockElement.textContent = inStock;
+        if (lowStockElement) lowStockElement.textContent = lowStock;
+        if (outStockElement) outStockElement.textContent = outOfStock;
+    }
+
+    // Update price chart data
+    updatePriceChart(priceAnalysis) {
+        if (!this.charts.price) return;
+
+        const data = [
+            priceAnalysis.under_1k || 0,
+            priceAnalysis.between_1k_5k || 0,
+            priceAnalysis.between_5k_10k || 0,
+            priceAnalysis.over_10k || 0
+        ];
+
+        this.charts.price.data.datasets[0].data = data;
+        this.charts.price.update('active');
+
+        // Update price stats with null checks
+        const priceUnder1k = document.getElementById('price-under-1k');
+        const price1k5k = document.getElementById('price-1k-5k');
+        const price5k10k = document.getElementById('price-5k-10k');
+        const priceOver10k = document.getElementById('price-over-10k');
+
+        if (priceUnder1k) priceUnder1k.textContent = data[0];
+        if (price1k5k) price1k5k.textContent = data[1];
+        if (price5k10k) price5k10k.textContent = data[2];
+        if (priceOver10k) priceOver10k.textContent = data[3];
+    }
+
+    // Toggle chart type
+    toggleChartType(chartId, newType) {
+        const chart = this.charts[chartId.replace('-chart', '')];
+        if (!chart) return;
+
+        chart.config.type = newType;
+        chart.update('active');
+    }
+
+    // Destroy all charts
+    destroyCharts() {
+        Object.values(this.charts).forEach(chart => {
+            if (chart) chart.destroy();
+        });
+        this.charts = {};
+    }
+}
+
+// Modern Analytics Data Manager
+class AnalyticsDataManager {
+    constructor() {
+        this.chartManager = new AnalyticsChartManager();
+        this.animationQueues = new Map();
+    }
+
+    // Initialize analytics
+    init() {
+        this.chartManager.initCharts();
+        this.loadAnalytics();
+    }
+
+    // Load analytics data
+    async loadAnalytics() {
+        try {
+            showMessage('Loading analytics...', 'info');
+
+            const [mainData, categories, lowStock] = await Promise.all([
+                fetch('api/analytics.php').then(r => r.json()),
+                fetch('api/analytics.php?type=categories').then(r => r.json()),
+                fetch('api/analytics.php?type=low-stock&threshold=10').then(r => r.json())
+            ]);
+
+            if (mainData.success) {
+                this.updateAllDisplays(mainData.analytics);
+
+                if (categories.success) {
+                    this.updateCategoryPerformance(categories.data);
+                }
+
+                if (lowStock.success) {
+                    this.updateLowStockAlerts(lowStock.data);
+                }
+
+                showMessage('Analytics loaded successfully!', 'success');
+            } else {
+                throw new Error(mainData.message || 'Failed to load analytics');
+            }
+        } catch (error) {
+            console.error('Analytics loading error:', error);
+            showMessage('Failed to load analytics', 'error');
+        }
+    }
+
+    // Update all displays
+    updateAllDisplays(analytics) {
+        this.updateKPICards(analytics);
+        this.updateCharts(analytics);
+        this.generateInsights(analytics);
+    }
+
+    // Update KPI cards with animation
+    updateKPICards(analytics) {
+        if (analytics.products) {
+            this.animateValue('analytics-total-products', analytics.products.total_products);
+            this.animateValue('analytics-inventory-value', analytics.products.total_inventory_value, true);
+        }
+
+        if (analytics.price_analysis) {
+            this.animateValue('analytics-avg-price', analytics.price_analysis.avg_price, true);
+        }
+
+        if (analytics.products) {
+            this.animateValue('analytics-low-stock', analytics.products.low_stock_products);
+        }
+    }
+
+    // Animate value changes
+    animateValue(elementId, targetValue, isCurrency = false) {
+        const element = document.getElementById(elementId);
+        if (!element) return;
+
+        const startValue = parseInt(element.textContent.replace(/[^\d]/g, '')) || 0;
+        const numericTarget = parseInt(targetValue.toString().replace(/[^\d]/g, ''));
+
+        if (startValue === numericTarget) return;
+
+        const duration = 1500;
+        const startTime = performance.now();
+
+        const animate = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+
+            // Easing function
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            const currentValue = Math.round(startValue + (numericTarget - startValue) * easeOut);
+
+            if (isCurrency) {
+                element.textContent = targetValue; // Use formatted currency from server
+            } else {
+                element.textContent = currentValue.toLocaleString();
+            }
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            }
+        };
+
+        requestAnimationFrame(animate);
+    }
+
+    // Update charts
+    updateCharts(analytics) {
+        if (analytics.products) {
+            this.chartManager.updateStockChart(analytics.products);
+        }
+
+        if (analytics.price_analysis) {
+            this.chartManager.updatePriceChart(analytics.price_analysis);
+        }
+    }
+
+    // Update category performance
+    updateCategoryPerformance(categories) {
+        const container = document.getElementById('category-breakdown');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        const maxValue = Math.max(...categories.map(c => c.product_count));
+
+        categories.slice(0, 5).forEach((category, index) => {
+            const progressWidth = (category.product_count / maxValue) * 100;
+
+            const categoryItem = document.createElement('div');
+            categoryItem.className = 'category-item-modern';
+            categoryItem.style.animationDelay = `${index * 100}ms`;
+
+            categoryItem.innerHTML = `
+                <div class="category-info-modern">
+                    <div class="category-name-modern">${category.category}</div>
+                    <div class="category-count-modern">${category.product_count} products</div>
+                    <div class="category-progress">
+                        <div class="category-progress-bar" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="category-value-modern">${category.category_value || 'KSh 0'}</div>
+            `;
+
+            container.appendChild(categoryItem);
+
+            // Animate progress bar
+            setTimeout(() => {
+                const progressBar = categoryItem.querySelector('.category-progress-bar');
+                if (progressBar) {
+                    progressBar.style.width = `${progressWidth}%`;
+                }
+            }, index * 100 + 500);
+        });
+    }
+
+    // Update low stock alerts
+    updateLowStockAlerts(lowStockProducts) {
+        this.updateLowStockPreview(lowStockProducts);
+        this.updateAlertCounts(lowStockProducts);
+    }
+
+    // Update low stock preview
+    updateLowStockPreview(products) {
+        const container = document.getElementById('low-stock-preview');
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        if (products.length === 0) {
+            container.innerHTML = '<div class="low-stock-item"><span>No low stock items</span></div>';
+            return;
+        }
+
+        products.slice(0, 3).forEach(product => {
+            const item = document.createElement('div');
+            item.className = 'low-stock-item';
+            item.innerHTML = `
+                <span class="low-stock-name">${product.name}</span>
+                <span class="low-stock-count">${product.stock} left</span>
+            `;
+            container.appendChild(item);
+        });
+
+        if (products.length > 3) {
+            const moreItem = document.createElement('div');
+            moreItem.className = 'low-stock-item';
+            moreItem.innerHTML = `
+                <span class="low-stock-name">and ${products.length - 3} more...</span>
+                <span class="low-stock-count"></span>
+            `;
+            container.appendChild(moreItem);
+        }
+    }
+
+    // Update alert counts
+    updateAlertCounts(lowStockProducts) {
+        const alertCount = document.getElementById('alert-count');
+        const lowStockCount = document.getElementById('low-stock-count');
+
+        if (alertCount) alertCount.textContent = lowStockProducts.length;
+        if (lowStockCount) lowStockCount.textContent = lowStockProducts.length;
+    }
+
+    // Generate insights
+    generateInsights(analytics) {
+        const insights = [];
+
+        // Stock insights
+        if (analytics.products && analytics.products.low_stock_products > 0) {
+            insights.push(`${analytics.products.low_stock_products} products need restocking`);
+        }
+
+        // Price insights
+        if (analytics.price_analysis) {
+            const priceAnalysis = analytics.price_analysis;
+            if (priceAnalysis.under_1k > priceAnalysis.over_10k * 2) {
+                insights.push('Consider adding premium product lines');
+            }
+        }
+
+        this.updateInsights('price-insights', insights.slice(0, 2));
+        this.updateInsights('category-insights', ['Top categories performing well', 'Inventory distribution balanced']);
+    }
+
+    // Update insights display
+    updateInsights(containerId, insights) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        container.innerHTML = '';
+
+        insights.forEach(insight => {
+            const item = document.createElement('div');
+            item.className = 'insight-item';
+            item.textContent = insight;
+            container.appendChild(item);
+        });
+    }
+
+    // Refresh analytics
+    async refresh() {
+        await this.loadAnalytics();
+    }
+}
+
+// Modern Analytics Functions
+function initModernAnalytics() {
+    if (!analyticsManager) {
+        analyticsManager = new AnalyticsDataManager();
+        analyticsManager.init();
+    }
+}
+
+// Manual chart initialization function (for debugging)
+window.initCharts = function () {
+    console.log('Manual chart initialization...');
+    initializeAnalytics();
+    if (chartManager) {
+        chartManager.initCharts();
+    }
+};
+
+// Export analytics function
+function exportAnalytics() {
+    // Create CSV data
+    const csvData = generateAnalyticsCSV();
+
+    // Create download link
+    const blob = new Blob([csvData], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `analytics-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+
+    showMessage('Analytics exported successfully!', 'success');
+}
+
+// Generate CSV data
+function generateAnalyticsCSV() {
+    const headers = ['Metric', 'Value', 'Timestamp'];
+    const timestamp = new Date().toISOString();
+
+    const rows = [
+        headers.join(','),
+        `Total Products,${document.getElementById('analytics-total-products')?.textContent || 0},${timestamp}`,
+        `Inventory Value,${document.getElementById('analytics-inventory-value')?.textContent || 'KSh 0'},${timestamp}`,
+        `Average Price,${document.getElementById('analytics-avg-price')?.textContent || 'KSh 0'},${timestamp}`,
+        `Low Stock Items,${document.getElementById('analytics-low-stock')?.textContent || 0},${timestamp}`
+    ];
+
+    return rows.join('\n');
+}
+
+// Toggle chart type function
+function toggleChartType(chartId, newType) {
+    if (analyticsManager && analyticsManager.chartManager) {
+        analyticsManager.chartManager.toggleChartType(chartId, newType);
+    }
+}
+
+// Show low stock details
+function showLowStockDetails() {
+    const detailsSection = document.getElementById('low-stock-detailed');
+    if (detailsSection) {
+        detailsSection.style.display = 'block';
+        detailsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+// Hide detailed view
+function hideDetailedView() {
+    const detailsSection = document.getElementById('low-stock-detailed');
+    if (detailsSection) {
+        detailsSection.style.display = 'none';
+    }
+}
+
+// Enhanced refresh analytics function
+function refreshAnalytics() {
+    if (analyticsManager) {
+        analyticsManager.refresh();
+    } else {
+        // Fallback to original function
+        loadAnalytics();
+    }
+}
+
+// Modern analytics is already initialized through the enhanced showSection function above

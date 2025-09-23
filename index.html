@@ -7,6 +7,9 @@
     <title>Admin Dashboard - Product Management</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 </head>
 
 <body>
@@ -279,7 +282,7 @@
             <!-- Products Section -->
             <section id="products" class="content-section">
                 <div class="section-header">
-                    <h2>Products List</h2>
+                    <h2>Products Management</h2>
                     <div class="header-actions">
                         <button class="btn btn-secondary" onclick="showSection('analytics')">
                             <i class="fas fa-chart-bar"></i> Analytics
@@ -287,6 +290,99 @@
                         <button class="btn btn-primary" onclick="showSection('add-product')">
                             <i class="fas fa-plus"></i> Add Product
                         </button>
+                    </div>
+                </div>
+
+                <!-- Products KPI Dashboard -->
+                <div class="products-kpi-grid">
+                    <div class="kpi-card fade-in-scale interactive-hover">
+                        <div class="kpi-icon">
+                            <i class="fas fa-boxes"></i>
+                        </div>
+                        <div class="kpi-content">
+                            <div class="kpi-value" id="products-total-count">0</div>
+                            <div class="kpi-label">Total Products</div>
+                            <div class="kpi-trend">
+                                <span class="trend-indicator positive" id="products-trend">
+                                    <i class="fas fa-arrow-up"></i> +0%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div class="kpi-card fade-in-scale interactive-hover">
+                        <div class="kpi-icon inventory">
+                            <i class="fas fa-warehouse"></i>
+                        </div>
+                        <div class="kpi-content">
+                            <div class="kpi-value" id="products-total-stock">0</div>
+                            <div class="kpi-label">Total Stock Units</div>
+                            <div class="kpi-trend">
+                                <span class="trend-indicator" id="stock-trend">
+                                    <i class="fas fa-minus"></i> 0%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div class="kpi-card fade-in-scale interactive-hover">
+                        <div class="kpi-icon value">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <div class="kpi-content">
+                            <div class="kpi-value" id="products-inventory-value">KSh 0</div>
+                            <div class="kpi-label">Inventory Value</div>
+                            <div class="kpi-trend">
+                                <span class="trend-indicator positive" id="value-trend">
+                                    <i class="fas fa-arrow-up"></i> +0%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div class="kpi-card fade-in-scale interactive-hover">
+                        <div class="kpi-icon price">
+                            <i class="fas fa-tag"></i>
+                        </div>
+                        <div class="kpi-content">
+                            <div class="kpi-value" id="products-avg-price">KSh 0</div>
+                            <div class="kpi-label">Average Price</div>
+                            <div class="kpi-trend">
+                                <span class="trend-indicator" id="price-trend">
+                                    <i class="fas fa-minus"></i> 0%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div class="kpi-card fade-in-scale interactive-hover">
+                        <div class="kpi-icon categories">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <div class="kpi-content">
+                            <div class="kpi-value" id="products-categories-count">0</div>
+                            <div class="kpi-label">Categories</div>
+                            <div class="kpi-trend">
+                                <span class="trend-indicator neutral" id="categories-trend">
+                                    <i class="fas fa-equals"></i> 0%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div class="kpi-card fade-in-scale interactive-hover alert-card">
+                        <div class="kpi-icon alert">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="kpi-content">
+                            <div class="kpi-value" id="products-low-stock-count">0</div>
+                            <div class="kpi-label">Low Stock Items</div>
+                            <div class="kpi-trend">
+                                <span class="trend-indicator warning" id="low-stock-trend">
+                                    <i class="fas fa-exclamation"></i> Alert
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -373,11 +469,52 @@
                     </table>
                 </div>
 
-                <!-- Pagination -->
-                <div id="pagination" class="pagination" style="display: none;">
-                    <button id="prev-page" onclick="changePage(-1)">← Previous</button>
-                    <span id="page-info"></span>
-                    <button id="next-page" onclick="changePage(1)">Next →</button>
+                <!-- Enhanced Pagination -->
+                <div class="products-pagination-container">
+                    <div class="pagination-info-card">
+                        <div class="pagination-stats">
+                            <span class="results-count">
+                                Showing <span id="products-showing-start">0</span>-<span id="products-showing-end">0</span>
+                                of <span id="products-total-results">0</span> products
+                            </span>
+                            <div class="page-size-selector">
+                                <label>Show:</label>
+                                <select id="products-per-page" onchange="changeProductsPerPage()">
+                                    <option value="10" selected>10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                                <span>per page</span>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <div class="pagination-controls">
+                        <button id="products-first-page" class="pagination-btn" onclick="goToFirstPage()" disabled>
+                            <i class="fas fa-angle-double-left"></i>
+                        </button>
+                        <button id="products-prev-page" class="pagination-btn" onclick="changePage(-1)" disabled>
+                            <i class="fas fa-angle-left"></i> Previous
+                        </button>
+                
+                        <div class="page-numbers" id="products-page-numbers">
+                            <!-- Page numbers will be generated here -->
+                        </div>
+                
+                        <button id="products-next-page" class="pagination-btn" onclick="changePage(1)" disabled>
+                            Next <i class="fas fa-angle-right"></i>
+                        </button>
+                        <button id="products-last-page" class="pagination-btn" onclick="goToLastPage()" disabled>
+                            <i class="fas fa-angle-double-right"></i>
+                        </button>
+                    </div>
+                
+                    <div class="page-jump">
+                        <label>Go to page:</label>
+                        <input type="number" id="page-jump-input" min="1" onkeypress="handlePageJump(event)">
+                        <button class="btn btn-sm" onclick="jumpToPage()">Go</button>
+                    </div>
                 </div>
             </section>
 
@@ -385,129 +522,265 @@
             <section id="analytics" class="content-section">
                 <div class="section-header">
                     <h2>Analytics Dashboard</h2>
-                    <button class="btn btn-secondary" onclick="refreshAnalytics()">
-                        <i class="fas fa-sync-alt"></i> Refresh
-                    </button>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" onclick="refreshAnalytics()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        <button class="btn btn-outline" onclick="exportAnalytics()">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        </div>
                 </div>
 
-                <!-- Enhanced Stats Grid -->
-                <div class="analytics-grid">
-                    <div class="analytics-card">
-                        <div class="card-header">
-                            <h3>Product Overview</h3>
+                <!-- Key Performance Indicators -->
+                <div class="kpi-grid">
+                    <div class="kpi-card fade-in-scale">
+                        <div class="kpi-icon">
                             <i class="fas fa-box"></i>
                         </div>
-                        <div class="card-content">
-                            <div class="stat-item">
-                                <span class="stat-label">Total Products:</span>
-                                <span id="analytics-total-products" class="stat-value">0</span>
+                        <div class="kpi-content">
+                            <div class="kpi-value counter" id="analytics-total-products">0</div>
+                            <div class="kpi-label">Total Products</div>
+                            <div class="kpi-trend positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span id="products-trend">+5%</span>
                             </div>
-                            <div class="stat-item">
-                                <span class="stat-label" style="color: green;">In Stock:</span>
-                                <span id="analytics-in-stock" class="stat-value">0</span>
+                        </div>
+                    </div>
+<div class="kpi-card fade-in-scale">
+    <div class="kpi-icon inventory">
+        <i class="fas fa-dollar-sign"></i>
+    </div>
+    <div class="kpi-content">
+        <div class="kpi-value counter" id="analytics-inventory-value">KSh 0</div>
+        <div class="kpi-label">Inventory Value</div>
+        <div class="kpi-trend positive">
+            <i class="fas fa-arrow-up"></i>
+            <span id="inventory-trend">+12%</span>
+        </div>
+    </div>
+</div>
+
+<div class="kpi-card fade-in-scale">
+    <div class="kpi-icon price">
+        <i class="fas fa-tag"></i>
+    </div>
+    <div class="kpi-content">
+        <div class="kpi-value counter" id="analytics-avg-price">KSh 0</div>
+        <div class="kpi-label">Average Price</div>
+        <div class="kpi-trend neutral">
+            <i class="fas fa-minus"></i>
+            <span id="price-trend">0%</span>
+        </div>
+    </div>
+</div>
+<div class="kpi-card fade-in-scale">
+    <div class="kpi-icon stock">
+        <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    <div class="kpi-content">
+        <div class="kpi-value counter" id="analytics-low-stock">0</div>
+        <div class="kpi-label">Low Stock Items</div>
+        <div class="kpi-trend negative">
+            <i class="fas fa-arrow-down"></i>
+            <span id="stock-trend">-3%</span>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- Charts and Analytics Grid -->
+<div class="analytics-grid-modern">
+    <!-- Stock Overview Chart -->
+    <div class="analytics-card-modern chart-card fade-in-scale interactive-hover">
+        <div class="card-header-modern">
+            <h3>Stock Overview</h3>
+            <div class="chart-actions">
+                <button class="chart-btn btn-micro" onclick="toggleChartType('stock-chart', 'doughnut')"
+                    title="Donut Chart">
+                    <i class="fas fa-chart-pie"></i>
+                </button>
+                <button class="chart-btn btn-micro" onclick="toggleChartType('stock-chart', 'bar')" title="Bar Chart">
+                    <i class="fas fa-chart-bar"></i>
+                </button>
+            </div>
+        </div>
+        <div class="chart-container">
+            <canvas id="stock-chart"></canvas>
+            <div class="chart-loading" id="stock-chart-loading" style="display: none;">
+                <div class="loading-spinner"></div>
+                <span style="margin-left: 12px;">Loading chart...</span>
+            </div>
+        </div>
+        <div class="chart-legend">
+            <div class="legend-item">
+                <span class="legend-color in-stock"></span>
+                <span class="legend-label">In Stock</span>
+                <span class="legend-value" id="analytics-in-stock">0</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color low-stock"></span>
+                <span class="legend-label">Low Stock</span>
+                <span class="legend-value" id="legend-low-stock">0</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color out-stock"></span>
+                <span class="legend-label">Out of Stock</span>
+                <span class="legend-value" id="legend-out-stock">0</span>
+            </div>
+        </div>
+    </div>
+<!-- Price Distribution Chart -->
+<div class="analytics-card-modern chart-card fade-in-scale interactive-hover">
+    <div class="card-header-modern">
+        <h3>Price Distribution</h3>
+        <div class="card-subtitle">Product pricing breakdown</div>
+    </div>
+        <div class="chart-container">
+            <canvas id="price-chart"></canvas>
+            <div class="chart-loading" id="price-chart-loading" style="display: none;">
+                <div class="loading-spinner"></div>
+                <span style="margin-left: 12px;">Loading chart...</span>
+            </div>
+        </div>
+        <div class="price-stats">
+            <div class="price-stat-item">
+                <span class="price-range">Under KSh 1K</span>
+                <span class="price-count" id="price-under-1k">0</span>
+            </div>
+                            <div class="price-stat-item">
+                                <span class="price-range">KSh 1K - 5K</span>
+                                <span class="price-count" id="price-1k-5k">0</span>
                             </div>
-                            <div class="stat-item">
-                                <span class="stat-label" style="color: red;">Low Stock:</span>
-                                <span id="analytics-low-stock" class="stat-value text-warning">0</span>
+                            <div class="price-stat-item">
+                                <span class="price-range">KSh 5K - 10K</span>
+                                <span class="price-count" id="price-5k-10k">0</span>
                             </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Inventory Value:</span>
-                                <span id="analytics-inventory-value" class="stat-value text-success">KSh 0</span>
+                            <div class="price-stat-item">
+                                <span class="price-range">Over KSh 10K</span>
+                                <span class="price-count" id="price-over-10k">0</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="analytics-card">
-                        <div class="card-header">
-                            <h3>Price Analysis</h3>
-                            <i class="fas fa-chart-line"></i>
+                    <!-- Category Performance -->
+                    <div class="analytics-card-modern fade-in-scale interactive-hover">
+                        <div class="card-header-modern">
+                            <h3>Category Performance</h3>
+                            <div class="card-subtitle">Top performing categories</div>
                         </div>
-                        <div class="card-content">
-                            <div class="stat-item">
-                                <span class="stat-label">Average Price:</span>
-                                <span id="analytics-avg-price" class="stat-value">KSh 0</span>
-                            </div>
-                            <div class="stat-item">
-                                <span class="stat-label">Price Range:</span>
-                                <span id="analytics-price-range" class="stat-value">KSh 0 - KSh 0</span>
-                            </div>
-                            <div class="price-distribution">
-                                <div class="distribution-item">
-                                    <span style="color: red;">Under KSh 1,000:</span>
-                                    <span id="price-under-1k" class="badge">0</span>
-                                </div>
-                                <div class="distribution-item">
-                                    <span>KSh 1,000 - 5,000:</span>
-                                    <span id="price-1k-5k" class="badge">0</span>
-                                </div>
-                                <div class="distribution-item">
-                                    <span>KSh 5,000 - 10,000:</span>
-                                    <span id="price-5k-10k" class="badge">0</span>
-                                </div>
-                                <div class="distribution-item">
-                                    <span style="color: green;">Over KSh 10,000:</span>
-                                    <span id="price-over-10k" class="badge">0</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="analytics-card">
-                        <div class="card-header">
-                            <h3>Category Breakdown</h3>
-                            <i class="fas fa-tags"></i>
-                        </div>
-                        <div class="card-content">
-                            <div id="category-breakdown" class="category-list">
+                        <div class="category-performance">
+                            <div id="category-breakdown" class="category-list-modern">
                                 <!-- Category data will be loaded here -->
                             </div>
                         </div>
                     </div>
 
-                    <div class="analytics-card">
-                        <div class="card-header">
-                            <h3>Stock Analysis</h3>
-                            <i class="fas fa-warehouse"></i>
+                    <!-- Inventory Trends -->
+                    <div class="analytics-card-modern chart-card">
+                        <div class="card-header-modern">
+                            <h3>Inventory Trends</h3>
+                            <div class="card-subtitle">Last 30 days</div>
                         </div>
-                        <div class="card-content">
-                            <div class="stat-item">
-                                <span class="stat-label">Total Stock Units:</span>
-                                <span id="analytics-total-stock" class="stat-value">0</span>
+                        <div class="chart-container">
+                            <canvas id="trend-chart"></canvas>
+                            <div class="chart-loading" id="trend-chart-loading" style="display: none;">
+                                <div class="loading-spinner"></div>
+                                <span style="margin-left: 12px;">Loading trends...</span>
                             </div>
-                            <div class="stock-distribution">
-                                <div class="distribution-item">
-                                    <span>Out of Stock:</span>
-                                    <span id="stock-out" class="badge badge-danger">0</span>
+                        </div>
+                    </div>
+                    </div>
+                    
+                    <!-- Critical Alerts Section -->
+                    <div class="alerts-section">
+                        <div class="section-title">
+                            <h3>Critical Alerts</h3>
+                            <span class="alert-count" id="alert-count">0</span>
+                        </div>
+                    
+                        <div class="alerts-grid">
+                            <!-- Low Stock Alert Card -->
+                            <div class="alert-card low-stock-alert fade-in-scale interactive-hover">
+                                <div class="alert-header">
+                                    <div class="alert-icon">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                    <div class="alert-title">
+                                        <h4>Low Stock Products</h4>
+                                        <span class="alert-subtitle">Products running low</span>
+                                    </div>
+                                    <div class="alert-badge" id="low-stock-count">0</div>
                                 </div>
-                                <div class="distribution-item">
-                                    <span>Low Stock (1-10):</span>
-                                    <span id="stock-low" class="badge badge-warning">0</span>
+                                <div class="alert-content">
+                                    <div class="low-stock-list" id="low-stock-preview">
+                                        <!-- Low stock items will be loaded here -->
+                                    </div>
                                 </div>
-                                <div class="distribution-item">
-                                    <span>Medium Stock (11-50):</span>
-                                    <span id="stock-medium" class="badge badge-info">0</span>
+                                <div class="alert-actions">
+                                    <button class="btn-alert primary btn-micro" onclick="showLowStockDetails()">
+                                        View All <i class="fas fa-arrow-right"></i>
+                                    </button>
                                 </div>
-                                <div class="distribution-item">
-                                    <span>High Stock (50+):</span>
-                                    <span id="stock-high" class="badge badge-success">0</span>
+                            </div>
+                    
+                            <!-- Price Anomalies Alert -->
+                            <div class="alert-card price-alert fade-in-scale interactive-hover">
+                                <div class="alert-header">
+                                    <div class="alert-icon">
+                                        <i class="fas fa-chart-line"></i>
+                                    </div>
+                                    <div class="alert-title">
+                                        <h4>Price Insights</h4>
+                                        <span class="alert-subtitle">Pricing recommendations</span>
+                                    </div>
+                                    <div class="alert-badge info" id="price-insights-count">0</div>
+                                </div>
+                                <div class="alert-content">
+                                    <div class="insight-list" id="price-insights">
+                                        <!-- Price insights will be loaded here -->
+                                    </div>
+                                </div>
+                        </div>
+<!-- Category Insights Alert -->
+<div class="alert-card category-alert fade-in-scale interactive-hover">
+    <div class="alert-header">
+        <div class="alert-icon">
+            <i class="fas fa-tags"></i>
+                                </div>
+                                <div class="alert-title">
+                                    <h4>Category Insights</h4>
+                                    <span class="alert-subtitle">Performance analysis</span>
+                                </div>
+                                <div class="alert-badge success" id="category-insights-count">0</div>
+                                </div>
+                            <div class="alert-content">
+                                <div class="insight-list" id="category-insights">
+                                    <!-- Category insights will be loaded here -->
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Low Stock Alerts -->
-                <div class="low-stock-section">
-                    <h3>Low Stock Alerts</h3>
-                    <div class="table-container">
-                        <table id="low-stock-table">
+                <!-- Detailed Low Stock Table -->
+                <div class="low-stock-section-modern" style="display: none;" id="low-stock-detailed">
+                    <div class="section-title">
+                        <h3>Low Stock Details</h3>
+                        <button class="btn btn-secondary" onclick="hideDetailedView()">
+                            <i class="fas fa-times"></i> Close
+                        </button>
+                    </div>
+                    <div class="table-container-modern">
+                        <table id="low-stock-table" class="modern-table">
                             <thead>
                                 <tr>
                                     <th>Product</th>
                                     <th>Category</th>
                                     <th>Current Stock</th>
+                                    <th>Status</th>
                                     <th>Price</th>
-                                    <th>Remaining Value</th>
+                                    <th>Value</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
