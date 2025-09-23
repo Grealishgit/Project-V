@@ -118,7 +118,7 @@
                         </button>
                     </div>
                 </div>
-                
+
                 <!-- Key Performance Indicators -->
                 <div class="kpi-section">
                     <h2 class="section-title">Key Performance Indicators</h2>
@@ -160,7 +160,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="kpi-card warning">
                             <div class="kpi-header">
                                 <div class="kpi-icon">
@@ -179,7 +179,7 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="kpi-card info">
                             <div class="kpi-header">
                                 <div class="kpi-icon">
@@ -216,7 +216,7 @@
                                     <div class="progress-bar" style="width: 65%"></div>
                                 </div>
                             </div>
-                            </div>
+                        </div>
 
                         <div class="kpi-card accent">
                             <div class="kpi-header">
@@ -235,23 +235,23 @@
                                     <div class="progress-bar" style="width: 82%"></div>
                                 </div>
                             </div>
-                            </div>
-                            </div>
-                            </div>
-                            
-                            <!-- Analytics Dashboard -->
-                            <div class="analytics-dashboard">
-                                <div class="analytics-row">
-                                    <!-- Stock Analysis Card -->
-                                    <div class="analytics-card stock-analysis">
-                                        <div class="card-header">
-                                            <h3>Stock Analysis</h3>
-                                            <div class="card-actions">
-                                                <button class="card-action-btn" onclick="showLowStockDetails()">
-                                                    <i class="fas fa-expand"></i>
-                                                </button>
-                                            </div>
+                        </div>
+                        </div>
+                        </div>
+                        
+                        <!-- Analytics Dashboard -->
+                        <div class="analytics-dashboard">
+                            <div class="analytics-row">
+                                <!-- Stock Analysis Card -->
+                                <div class="analytics-card stock-analysis">
+                                    <div class="card-header">
+                                        <h3>Stock Analysis</h3>
+                                        <div class="card-actions">
+                                            <button class="card-action-btn" onclick="showLowStockDetails()">
+                                                <i class="fas fa-expand"></i>
+                                            </button>
                                         </div>
+                                    </div>
                             <div class="card-content">
                                 <div class="stock-metrics">
                                     <div class="stock-metric in-stock">
@@ -421,8 +421,8 @@
                                         <tbody id="dashboard-products-tbody">
                                             <!-- Products will be loaded here -->
                                         </tbody>
-                                        </table>
-                                        </div>
+                                    </table>
+                                    </div>
                             </div>
                         </div>
 
@@ -437,7 +437,7 @@
                                     <!-- Low stock alerts will be loaded here -->
                                 </div>
                             </div>
-                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -750,7 +750,7 @@
                             </div>
                         </div>
                     </div>
-                    </div>
+                </div>
 
                 <!-- Charts and Analytics Grid -->
                 <div class="analytics-grid-modern">
@@ -854,14 +854,14 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Critical Alerts Section -->
                 <div class="alerts-section">
                     <div class="section-title">
                         <h3>Critical Alerts</h3>
                         <span class="alert-count" id="alert-count">0</span>
                     </div>
-                
+
                     <div class="alerts-grid">
                         <!-- Low Stock Alert Card -->
                         <div class="alert-card low-stock-alert fade-in-scale interactive-hover">
@@ -886,7 +886,7 @@
                                 </button>
                             </div>
                         </div>
-                
+
                         <!-- Price Anomalies Alert -->
                         <div class="alert-card price-alert fade-in-scale interactive-hover">
                             <div class="alert-header">
@@ -999,9 +999,9 @@
                                             <label for="product-stock">Stock Quantity</label>
                                         <input type="number" id="product-stock" name="stock" required placeholder="0">
                                     </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="product-description">Description</label>
+                                </div>
+                                <div class="form-group">
+                                    <label for="product-description">Description</label>
                                     <textarea id="product-description" name="description" rows="4" placeholder="Enter product description..."></textarea>
                                     </div>
                                     <div class="form-group">
@@ -1021,11 +1021,11 @@
                                     <button type="button" class="btn btn-secondary" onclick="resetForm()">
                                         <i class="fas fa-times"></i> Clear Form
                                     </button>
-                                    </div>
-                                    </form>
+                                </div>
+                                </form>
                         </div>
                     </div>
-                    
+
                     <!-- Preview Section (Right) -->
                     <div class="product-preview-section">
                         <div class="preview-container">
@@ -1058,7 +1058,7 @@
                                     </div>
                                 </div>
                             </div>
-                    
+
                             <!-- Preview Stats -->
                             <div class="preview-stats">
                                 <div class="preview-stat">
@@ -1093,38 +1093,80 @@
             </div>
             <form id="edit-form">
                 <input type="hidden" id="edit-id" name="id">
-                <div class="form-group">
-                    <label for="edit-name">Product Name</label>
-                    <input type="text" id="edit-name" name="name" required>
+                <!-- Product Image Section - Prominent Top Section -->
+                <div class="edit-image-section">
+                    <div class="image-section-header">
+                        <h4><i class="fas fa-image"></i> Product Image</h4>
+                        <p class="image-section-subtitle">Current image and upload options</p>
+                    </div>
+                
+                    <!-- Current/Preview Image Display -->
+                    <div class="image-display-area">
+                        <div class="current-image-container" id="edit-current-image">
+                            <!-- Current image will be displayed here -->
+                        </div>
+                    </div>
+                
+                    <!-- Image Upload Controls -->
+                    <div class="image-upload-controls">
+                        <div class="file-input-container">
+                            <input type="file" id="edit-image" name="image" accept="image/*" class="file-input">
+                            <label for="edit-image" class="file-input-label edit-file-label">
+                                <i class="fas fa-upload"></i>
+                                <span>Choose New Image</span>
+                            </label>
+                        </div>
+                        <div class="upload-help-text">
+                            <small><i class="fas fa-info-circle"></i> Supported: JPG, PNG, GIF, WebP (Max 5MB)</small>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="edit-category">Category</label>
-                    <select id="edit-category" name="category" required>
-                        <option value="Electronics">Electronics</option>
-                        <option value="Clothing">Clothing</option>
-                        <option value="Books">Books</option>
-                        <option value="Home">Home</option>
-                        <option value="Sports">Sports</option>
-                    </select>
+                
+                <!-- Product Details Section -->
+                <div class="edit-details-section">
+                    <div class="details-section-header">
+                        <h4><i class="fas fa-edit"></i> Product Details</h4>
                     </div>
                     <div class="form-group">
-                        <label for="edit-price">Price (KSh)</label>
-                        <input type="number" id="edit-price" name="price" step="0.01" required>
+                        <label for="edit-name">Product Name</label>
+                        <input type="text" id="edit-name" name="name" required>
                     </div>
                     <div class="form-group">
-                        <label for="edit-stock">Stock Quantity</label>
-                    <input type="number" id="edit-stock" name="stock" required>
+                        <label for="edit-category">Category</label>
+                        <select id="edit-category" name="category" required>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Clothing">Clothing</option>
+                            <option value="Books">Books</option>
+                            <option value="Home">Home</option>
+                            <option value="Sports">Sports</option>
+                            <option value="Toys">Toys</option>
+                            <option value="Beauty">Beauty</option>
+                            <option value="Automotive">Automotive</option>
+                            <option value="Garden">Garden</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="edit-price">Price (KSh)</label>
+                            <input type="number" id="edit-price" name="price" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-stock">Stock Quantity</label>
+                            <input type="number" id="edit-stock" name="stock" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-description">Description</label>
+                        <textarea id="edit-description" name="description" rows="4"></textarea>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="edit-description">Description</label>
-                    <textarea id="edit-description" name="description" rows="4"></textarea>
-                </div>
+
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Update Product</button>
                     <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
                 </div>
-                </form>
-                </div>
+            </form>
+            </div>
     </div>
 
     <!-- Admin User Modal -->

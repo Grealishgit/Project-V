@@ -124,9 +124,9 @@ class ProductAPI {
             $this->sendResponse(['success' => false, 'message' => 'Product ID is required'], 400);
             return;
         }
-        
+
         $id = intval($_POST['id']);
-        
+
         // Validate required fields
         $required = ['name', 'category', 'price', 'stock'];
         foreach ($required as $field) {
@@ -135,7 +135,17 @@ class ProductAPI {
                 return;
             }
         }
-        
+
+        // Handle file upload for image update
+        $imageName = null;
+        if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+            $imageName = $this->handleFileUpload($_FILES['image']);
+            if (!$imageName) {
+                $this->sendResponse(['success' => false, 'message' => 'Failed to upload image'], 400);
+                return;
+            }
+        }
+
         // Prepare data
         $data = [
             'name' => trim($_POST['name']),
@@ -144,18 +154,42 @@ class ProductAPI {
             'stock' => intval($_POST['stock']),
             'description' => trim($_POST['description'] ?? '')
         ];
-        
+
+        // Only include image in update data if a new image was uploaded
+        if ($imageName) {
+            $data['image'] = $imageName;
+        }
+
         // Update product
         $success = $this->product->update($id, $data);
-        
+
         if ($success) {
             $this->sendResponse(['success' => true, 'message' => 'Product updated successfully']);
         } else {
             $this->sendResponse(['success' => false, 'message' => 'Failed to update product'], 500);
         }
     }
-    
-    private function handleDelete() {
+
+    private function handlePut()
+    {
+        // PUT method can use the same logic as POST for updates
+        // Parse JSON body for PUT requests
+        $input = json_decode(file_get_contents('php://input'), true);
+
+        if (!$input) {
+            $this->sendResponse(['success' => false, 'message' => 'Invalid JSON data'], 400);
+            return;
+        }
+
+        // Convert to $_POST format for compatibility with handleUpdate
+        $_POST = $input;
+        $_POST['action'] = 'update';
+
+        $this->handleUpdate();
+    }
+
+    private function handleDelete()
+    {
         $input = json_decode(file_get_contents('php://input'), true);
         
         if (!isset($input['id']) || empty($input['id'])) {

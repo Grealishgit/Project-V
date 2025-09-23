@@ -587,6 +587,36 @@ function editProduct(id) {
                 document.getElementById('edit-stock').value = product.stock;
                 document.getElementById('edit-description').value = product.description;
 
+                // Display current image
+                const currentImageContainer = document.getElementById('edit-current-image');
+                if (product.image) {
+                    currentImageContainer.innerHTML = `
+                        <div class="current-image-wrapper">
+                            <img src="uploads/${product.image}" alt="${product.name}" class="current-product-image">
+                            <p class="current-image-label">Current Image</p>
+                        </div>
+                    `;
+                } else {
+                    currentImageContainer.innerHTML = `
+                        <div class="no-current-image">
+                            <i class="fas fa-image"></i>
+                            <p>No current image</p>
+                        </div>
+                    `;
+                }
+
+                // Reset file input and label
+                const editImageInput = document.getElementById('edit-image');
+                const editFileLabel = document.querySelector('.edit-file-label span');
+                editImageInput.value = '';
+                if (editFileLabel) {
+                    editFileLabel.textContent = 'Choose New Image';
+                }
+
+                // Add event listener for image preview in edit modal
+                editImageInput.removeEventListener('change', handleEditImagePreview);
+                editImageInput.addEventListener('change', handleEditImagePreview);
+
                 // Show modal
                 document.getElementById('edit-modal').style.display = 'block';
                 currentEditId = id;
@@ -905,6 +935,42 @@ function handleImagePreview(event) {
         const label = document.querySelector('.file-input-label span');
         if (label) {
             label.textContent = 'Choose Image';
+        }
+    }
+}
+
+// Handle image preview for edit modal
+function handleEditImagePreview(event) {
+    console.log('Image preview triggered'); // Debug log
+    const file = event.target.files[0];
+    const currentImageContainer = document.getElementById('edit-current-image');
+    const editFileLabel = document.querySelector('.edit-file-label span');
+
+    console.log('File selected:', file); // Debug log
+    console.log('Container found:', currentImageContainer); // Debug log
+
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            console.log('File loaded, updating preview'); // Debug log
+            currentImageContainer.innerHTML = `
+                <div class="new-image-wrapper">
+                    <img src="${e.target.result}" alt="New Product Image" class="new-product-image">
+                    <p class="new-image-label">New Image Preview</p>
+                </div>
+            `;
+        };
+        reader.readAsDataURL(file);
+
+        // Update file input label
+        if (editFileLabel) {
+            editFileLabel.textContent = file.name;
+        }
+    } else {
+        // Reset to show current image or no image message
+        // This will be handled when the modal is opened
+        if (editFileLabel) {
+            editFileLabel.textContent = 'Choose New Image';
         }
     }
 }

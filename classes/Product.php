@@ -38,14 +38,15 @@ class Product {
     }
     
     public function update($id, $data) {
-        $sql = "UPDATE products SET 
-                name = :name, 
-                category = :category, 
-                price = :price, 
-                stock = :stock, 
-                description = :description,
-                updated_at = NOW()
-                WHERE id = :id";
+        // Base SQL parts
+        $setParts = [
+            'name = :name',
+            'category = :category',
+            'price = :price',
+            'stock = :stock',
+            'description = :description',
+            'updated_at = NOW()'
+        ];
         
         $params = [
             ':id' => $id,
@@ -55,7 +56,15 @@ class Product {
             ':stock' => $data['stock'],
             ':description' => $data['description'] ?? null
         ];
-        
+
+        // Add image to update if provided
+        if (isset($data['image']) && $data['image'] !== null) {
+            $setParts[] = 'image = :image';
+            $params[':image'] = $data['image'];
+        }
+
+        $sql = "UPDATE products SET " . implode(', ', $setParts) . " WHERE id = :id";
+
         $stmt = $this->db->query($sql, $params);
         return $stmt->rowCount() > 0;
     }
@@ -219,6 +228,13 @@ class Product {
         $stats['max_price'] = 'KSh ' . number_format($stats['max_price'], 2);
         
         return $stats;
+    }
+
+    public function getProductsByCategory($category)
+    {
+        $sql = "SELECT * FROM products WHERE category = :category ORDER BY created_at DESC";
+        $stmt = $this->db->query($sql, [':category' => $category]);
+        return $stmt->fetchAll();
     }
 }
 ?>
