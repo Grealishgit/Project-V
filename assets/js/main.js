@@ -1148,6 +1148,91 @@ function exportFilteredResults() {
     link.click();
 }
 
+// Export products to CSV
+function exportProductsCSV() {
+    // Show loading message
+    showMessage('Preparing CSV export for Excel...', 'info');
+
+    try {
+        // Get current filters from the search/filter form
+        const searchInput = document.getElementById('search-input');
+        const categoryFilter = document.getElementById('category-filter');
+        const minPrice = document.getElementById('min-price');
+        const maxPrice = document.getElementById('max-price');
+        const inStockOnly = document.getElementById('in-stock-only');
+        const lowStockOnly = document.getElementById('low-stock-only');
+        const sortBy = document.getElementById('sort-by');
+        const sortOrder = document.getElementById('sort-order');
+
+        // Build parameters for export
+        const params = new URLSearchParams();
+
+        if (searchInput && searchInput.value.trim()) {
+            params.append('search', searchInput.value.trim());
+        }
+
+        if (categoryFilter && categoryFilter.value) {
+            params.append('category', categoryFilter.value);
+        }
+
+        if (minPrice && minPrice.value) {
+            params.append('min_price', minPrice.value);
+        }
+
+        if (maxPrice && maxPrice.value) {
+            params.append('max_price', maxPrice.value);
+        }
+
+        if (inStockOnly && inStockOnly.checked) {
+            params.append('in_stock_only', '1');
+        }
+
+        if (lowStockOnly && lowStockOnly.checked) {
+            params.append('low_stock_only', '1');
+        }
+
+        if (sortBy && sortBy.value) {
+            params.append('sort_by', sortBy.value);
+        }
+
+        if (sortOrder && sortOrder.value) {
+            params.append('sort_order', sortOrder.value);
+        }
+
+        // Create download link with proper Excel-compatible filename
+        const link = document.createElement('a');
+        const timestamp = new Date().toISOString().split('T')[0];
+        const timeString = new Date().toLocaleTimeString('en-GB', { hour12: false }).replace(/:/g, '-');
+        const hasFilters = params.toString().length > 0;
+        const filename = hasFilters ?
+            `filtered_products_${timestamp}_${timeString}.csv` :
+            `all_products_${timestamp}_${timeString}.csv`;
+
+        link.href = `api/export.php?${params.toString()}`;
+        link.download = filename;
+        link.style.display = 'none';
+
+        // Add to DOM, click, and remove
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Success message with additional info
+        const filterInfo = hasFilters ? ' (with current filters applied)' : ' (all products)';
+        showMessage(`CSV export started successfully${filterInfo}! File ready for Excel.`, 'success');
+
+        // Log export action for debugging
+        console.log(`CSV Export: ${filename}`, {
+            filters: Object.fromEntries(params.entries()),
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (error) {
+        console.error('Export error:', error);
+        showMessage('Failed to export products. Please check your connection and try again.', 'error');
+    }
+}
+
 // Analytics functionality
 function loadAnalytics() {
     // Show loading state
