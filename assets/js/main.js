@@ -2232,6 +2232,10 @@ class AnalyticsChartManager {
             return;
         }
 
+        // Destroy previous chart if exists
+        if (this.charts.stock) {
+            this.charts.stock.destroy();
+        }
         console.log('Creating stock chart...');
         this.charts.stock = new Chart(ctx, {
             type: 'doughnut',
