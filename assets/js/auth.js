@@ -3,6 +3,19 @@ class AuthManager {
     constructor() {
         this.currentUser = null;
         this.sessionToken = null;
+        this.userRole = null;
+    }
+
+    isAdmin() {
+        return this.userRole === 'admin';
+    }
+
+    isCustomer() {
+        return this.userRole === 'customer';
+    }
+
+    getRole() {
+        return this.userRole;
     }
 
     async checkAuth() {
@@ -15,6 +28,7 @@ class AuthManager {
 
             if (result.success) {
                 this.currentUser = result.user;
+                this.userRole = result.user.role;
                 this.updateUserDisplay();
                 return true;
             } else {

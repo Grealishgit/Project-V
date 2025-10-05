@@ -32,7 +32,7 @@ try {
             }
             
             // Check in admin_users table
-            $sql = "SELECT id, username, password, full_name, email, is_active FROM admin_users WHERE username = ? OR email = ?";
+            $sql = "SELECT id, username, password, full_name, email, is_active, role FROM admin_users WHERE username = ? OR email = ?";
             $stmt = $db->prepare($sql);
             $stmt->execute([$username, $username]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -44,6 +44,7 @@ try {
                     $_SESSION['username'] = $user['username'];
                     $_SESSION['full_name'] = $user['full_name'];
                     $_SESSION['email'] = $user['email'];
+                    $_SESSION['role'] = $user['role'];
                     
                     // Update last login
                     $updateSql = "UPDATE admin_users SET last_login = NOW() WHERE id = ?";
@@ -57,7 +58,8 @@ try {
                             'id' => $user['id'],
                             'username' => $user['username'],
                             'full_name' => $user['full_name'],
-                            'email' => $user['email']
+                            'email' => $user['email'],
+                            'role' => $user['role']
                         ]
                     ]);
                 } else {

@@ -22,10 +22,45 @@ let productsStats = {
 };
 
 // Initialize the dashboard
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
+    // Add loading class to body to hide content during auth check
+    document.body.classList.add('app-loading');
+    const appLoader = document.getElementById('app-loader');
+
     loadTheme();
-    loadDashboardStats();
-    performSearch(); // Use enhanced search for initial load
+
+    // Check authentication first
+    const isAuthenticated = await authManager.checkAuth();
+
+    if (isAuthenticated) {
+        // Render role-based UI
+        renderSidebar();
+        updateNavbar();
+
+        // Load appropriate content based on role
+        if (authManager.isAdmin()) {
+            loadDashboardStats();
+            performSearch(); // Use enhanced search for initial load
+        } else {
+            // Load customer-specific content
+            showSection('view-products');
+        }
+
+        // Remove loading class and hide loader to show content with smooth transition
+        setTimeout(() => {
+            document.body.classList.remove('app-loading');
+            if (appLoader) {
+                appLoader.classList.add('hidden');
+            }
+        }, 100);
+    } else {
+        // Remove loading class and hide loader even if auth fails
+        document.body.classList.remove('app-loading');
+        if (appLoader) {
+            appLoader.classList.add('hidden');
+        }
+    }
+
     initializeSidebar();
 
     // Initialize form submission handlers
@@ -67,6 +102,108 @@ function initializeEventListeners() {
             closeAdminModal();
         }
     });
+}
+
+// Render sidebar based on user role
+function renderSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+
+    const isAdmin = authManager && authManager.isAdmin();
+    const userRole = authManager ? authManager.getRole() : 'customer';
+
+    // Update sidebar header
+    const sidebarHeader = sidebar.querySelector('.sidebar-header h3');
+    if (sidebarHeader) {
+        sidebarHeader.innerHTML = `<i class="fas fa-chart-line"></i> ${isAdmin ? 'Admin Dashboard' : 'Customer Portal'}`;
+    }
+
+    // Generate menu items based on role
+    const sidebarMenu = sidebar.querySelector('.sidebar-menu');
+    if (!sidebarMenu) return;
+
+    let menuHTML = '';
+
+    if (isAdmin) {
+        // Admin menu items
+        menuHTML = `
+            <li class="active">
+                <a href="#dashboard" onclick="showSection('dashboard')">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="#products" onclick="showSection('products')">
+                    <i class="fas fa-box"></i>
+                    <span>Products</span>
+                </a>
+            </li>
+            <li>
+                <a href="#analytics" onclick="showSection('analytics')">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Analytics</span>
+                </a>
+            </li>
+            <li>
+                <a href="#add-product" onclick="showSection('add-product')">
+                    <i class="fas fa-plus"></i>
+                    <span>Add Product</span>
+                </a>
+            </li>
+        `;
+    } else {
+        // Customer menu items
+        menuHTML = `
+            <li class="active">
+                <a href="#view-products" onclick="showSection('view-products')">
+                    <i class="fas fa-box-open"></i>
+                    <span>All Products</span>
+                </a>
+            </li>
+            <li>
+                <a href="#order-product" onclick="showSection('order-product')">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Order Product</span>
+                </a>
+            </li>
+            <li>
+                <a href="#view-orders" onclick="showSection('view-orders')">
+                    <i class="fas fa-receipt"></i>
+                    <span>View Orders</span>
+                </a>
+            </li>
+            <li>
+                <a href="#my-profile" onclick="showSection('my-profile')">
+                    <i class="fas fa-user"></i>
+                    <span>My Profile</span>
+                </a>
+            </li>
+        `;
+    }
+
+    sidebarMenu.innerHTML = menuHTML;
+
+    // Update sidebar footer user info
+    const sidebarUserName = sidebar.querySelector('.sidebar-user-name');
+    if (sidebarUserName && authManager && authManager.currentUser) {
+        sidebarUserName.textContent = authManager.currentUser.full_name || authManager.currentUser.username;
+    }
+}
+
+// Update navbar based on user role
+function updateNavbar() {
+    const navbarTitle = document.querySelector('.navbar-brand h2');
+    if (navbarTitle && authManager) {
+        const isAdmin = authManager.isAdmin();
+        navbarTitle.innerHTML = `<i class="fas fa-chart-line"></i> ${isAdmin ? 'Admin Dashboard' : 'Customer Dashboard'}`;
+    }
+
+    // Update navbar user display
+    const navbarUserName = document.querySelector('.navbar-user .user-name');
+    if (navbarUserName && authManager && authManager.currentUser) {
+        navbarUserName.textContent = authManager.currentUser.full_name || authManager.currentUser.username;
+    }
 }
 
 // Initialize sidebar functionality
