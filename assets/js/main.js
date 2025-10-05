@@ -1501,7 +1501,7 @@ function displayCart() {
                 </div>
                 <div class="cart-item-details">
                     <h4>${item.name}</h4>
-                    <p class="cart-item-price">$${item.price.toFixed(2)}</p>
+                    <p class="cart-item-price">Ksh ${item.price.toFixed(2)}</p>
                 </div>
                 <div class="cart-item-quantity">
                     <button onclick="updateCartQuantity(${item.id}, ${item.quantity - 1})" class="qty-btn">
@@ -1514,7 +1514,7 @@ function displayCart() {
                     </button>
                 </div>
                 <div class="cart-item-total">
-                    $${(item.price * item.quantity).toFixed(2)}
+                    Ksh ${(item.price * item.quantity).toFixed(2)}
                 </div>
                 <button onclick="removeFromCart(${item.id})" class="cart-item-remove">
                     <i class="fas fa-trash"></i>
@@ -1531,15 +1531,15 @@ function displayCart() {
         <div class="cart-summary">
             <div class="cart-summary-row">
                 <span>Subtotal:</span>
-                <span>$${total.toFixed(2)}</span>
+                <span>Ksh ${total.toFixed(2)}</span>
             </div>
             <div class="cart-summary-row">
                 <span>Tax (10%):</span>
-                <span>$${(total * 0.1).toFixed(2)}</span>
+                <span>Ksh ${(total * 0.1).toFixed(2)}</span>
             </div>
             <div class="cart-summary-row total">
                 <span>Total:</span>
-                <span>$${(total * 1.1).toFixed(2)}</span>
+                <span>Ksh ${(total * 1.1).toFixed(2)}</span>
             </div>
             <div class="cart-actions">
                 <button class="btn btn-secondary" onclick="cartManager.clearCart(); displayCart();">
@@ -1650,7 +1650,7 @@ function showOrderSuccessModal(order) {
     modal.style.display = 'flex';
 
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-content" style="max-width: 500px; max-height: 50vh; overflow-y: auto; border-radius: 8px;">
             <div class="modal-header" style="background: #27ae60; color: white;">
                 <h3><i class="fas fa-check-circle"></i> Order Placed Successfully!</h3>
                 <span class="close" onclick="closeOrderSuccessModal()">&times;</span>
