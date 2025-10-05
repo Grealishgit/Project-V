@@ -21,8 +21,8 @@ if (!isset($_SESSION['admin_id']) || !isset($_SESSION['role'])) {
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script
-        src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js">
+    </script>
 </head>
 
 <body>
@@ -92,6 +92,30 @@ if (!isset($_SESSION['admin_id']) || !isset($_SESSION['role'])) {
                     <a href="#add-product" onclick="showSection('add-product')">
                         <i class="fas fa-plus"></i>
                         <span>Add Product</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#admin-orders" onclick="showSection('admin-orders')">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Orders</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#order-items" onclick="showSection('order-items')">
+                        <i class="fas fa-boxes"></i>
+                        <span>Order Items</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#customers" onclick="showSection('customers')">
+                        <i class="fas fa-users"></i>
+                        <span>Customers</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#backup" onclick="showSection('backup')">
+                        <i class="fas fa-database"></i>
+                        <span>Backup</span>
                     </a>
                 </li>
             </ul>
@@ -254,22 +278,22 @@ if (!isset($_SESSION['admin_id']) || !isset($_SESSION['role'])) {
                                 </div>
                             </div>
                         </div>
-                        </div>
-                        </div>
-                        
-                        <!-- Analytics Dashboard -->
-                        <div class="analytics-dashboard">
-                            <div class="analytics-row">
-                                <!-- Stock Analysis Card -->
-                                <div class="analytics-card stock-analysis">
-                                    <div class="card-header">
-                                        <h3>Stock Analysis</h3>
-                                        <div class="card-actions">
-                                            <button class="card-action-btn" onclick="showLowStockDetails()">
-                                                <i class="fas fa-expand"></i>
-                                            </button>
-                                        </div>
-                                    </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Dashboard -->
+                <div class="analytics-dashboard">
+                    <div class="analytics-row">
+                        <!-- Stock Analysis Card -->
+                        <div class="analytics-card stock-analysis">
+                            <div class="card-header">
+                                <h3>Stock Analysis</h3>
+                                <div class="card-actions">
+                                    <button class="card-action-btn" onclick="showLowStockDetails()">
+                                        <i class="fas fa-expand"></i>
+                                    </button>
+                                </div>
+                            </div>
                             <div class="card-content">
                                 <div class="stock-metrics">
                                     <div class="stock-metric in-stock">
@@ -440,7 +464,7 @@ if (!isset($_SESSION['admin_id']) || !isset($_SESSION['role'])) {
                                             <!-- Products will be loaded here -->
                                         </tbody>
                                     </table>
-                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -658,7 +682,8 @@ if (!isset($_SESSION['admin_id']) || !isset($_SESSION['role'])) {
                     <div class="pagination-info-card">
                         <div class="pagination-stats">
                             <span class="results-count">
-                                Showing <span id="products-showing-start">0</span>-<span id="products-showing-end">0</span>
+                                Showing <span id="products-showing-start">0</span>-<span
+                                    id="products-showing-end">0</span>
                                 of <span id="products-total-results">0</span> products
                             </span>
                             <div class="page-size-selector">
@@ -784,7 +809,8 @@ if (!isset($_SESSION['admin_id']) || !isset($_SESSION['role'])) {
                                     title="Donut Chart">
                                     <i class="fas fa-chart-pie"></i>
                                 </button>
-                                <button class="chart-btn btn-micro" onclick="toggleChartType('stock-chart', 'bar')" title="Bar Chart">
+                                <button class="chart-btn btn-micro" onclick="toggleChartType('stock-chart', 'bar')"
+                                    title="Bar Chart">
                                     <i class="fas fa-chart-bar"></i>
                                 </button>
                             </div>
@@ -998,35 +1024,38 @@ if (!isset($_SESSION['admin_id']) || !isset($_SESSION['role'])) {
                             <form id="product-form" enctype="multipart/form-data">
                                 <div class="form-group">
                                     <label for="product-name">Product Name</label>
-                                    <input type="text" id="product-name" name="name" required placeholder="Enter product name">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="product-category">Category</label>
-                                        <select id="product-category" name="category" required>
-                                            <option value="">Select Category</option>
-                                            <option value="Electronics">Electronics</option>
-                                            <option value="Clothing">Clothing</option>
-                                            <option value="Books">Books</option>
-                                            <option value="Home">Home</option>
-                                            <option value="Sports">Sports</option>
-                                        </select>
-                                    </div>
+                                    <input type="text" id="product-name" name="name" required
+                                        placeholder="Enter product name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="product-category">Category</label>
+                                    <select id="product-category" name="category" required>
+                                        <option value="">Select Category</option>
+                                        <option value="Electronics">Electronics</option>
+                                        <option value="Clothing">Clothing</option>
+                                        <option value="Books">Books</option>
+                                        <option value="Home">Home</option>
+                                        <option value="Sports">Sports</option>
+                                    </select>
+                                </div>
                                 <div class="form-row">
                                     <div class="form-group">
                                         <label for="product-price">Price (KSh)</label>
-                                        <input type="number" id="product-price" name="price" step="0.01" required placeholder="0.00">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="product-stock">Stock Quantity</label>
+                                        <input type="number" id="product-price" name="price" step="0.01" required
+                                            placeholder="0.00">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="product-stock">Stock Quantity</label>
                                         <input type="number" id="product-stock" name="stock" required placeholder="0">
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <label for="product-description">Description</label>
-                                    <textarea id="product-description" name="description" rows="4" placeholder="Enter product description..."></textarea>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="product-image">Product Image</label>
+                                    <textarea id="product-description" name="description" rows="4"
+                                        placeholder="Enter product description..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="product-image">Product Image</label>
                                     <div class="file-input-wrapper">
                                         <input type="file" id="product-image" name="image" accept="image/*">
                                         <label for="product-image" class="file-input-label">
@@ -1043,7 +1072,7 @@ if (!isset($_SESSION['admin_id']) || !isset($_SESSION['role'])) {
                                         <i class="fas fa-times"></i> Clear Form
                                     </button>
                                 </div>
-                                </form>
+                            </form>
                         </div>
                     </div>
 
@@ -1102,114 +1131,406 @@ if (!isset($_SESSION['admin_id']) || !isset($_SESSION['role'])) {
                     </div>
                 </div>
             </section>
-<!-- Customer: View Products Section -->
-<section id="view-products" class="content-section">
-    <div class="section-header">
-        <h2><i class="fas fa-box-open"></i> Browse Products</h2>
-    </div>
-
-    <!-- Search and Filter Bar -->
-    <div class="customer-search-bar">
-        <div class="search-group">
-            <i class="fas fa-search"></i>
-            <input type="text" id="customer-search-input" placeholder="Search products..."
-                onkeyup="debounce(loadCustomerProducts, 300)()">
-        </div>
-        <select id="customer-category-filter" onchange="loadCustomerProducts()">
-            <option value="">All Categories</option>
-            <option value="Electronics">Electronics</option>
-            <option value="Clothing">Clothing</option>
-            <option value="Books">Books</option>
-            <option value="Home">Home</option>
-            <option value="Sports">Sports</option>
-        </select>
-        <select id="customer-sort-by" onchange="loadCustomerProducts()">
-            <option value="name_asc">Name (A-Z)</option>
-            <option value="name_desc">Name (Z-A)</option>
-            <option value="price_asc">Price (Low to High)</option>
-            <option value="price_desc">Price (High to Low)</option>
-            <option value="newest">Newest First</option>
-        </select>
-    </div>
-
-    <!-- Products Grid -->
-    <div id="customer-products-grid" class="products-grid">
-        <!-- Products will be loaded here dynamically -->
-    </div>
-
-    <!-- Pagination -->
-    <div id="customer-pagination" class="pagination">
-        <!-- Pagination will be loaded here -->
-    </div>
-</section>
-
-<!-- Customer: Shopping Cart Section -->
-<section id="order-product" class="content-section">
-    <div class="section-header">
-        <h2><i class="fas fa-shopping-cart"></i> Shopping Cart</h2>
-    </div>
-
-    <div id="cart-container" class="cart-container">
-        <!-- Cart items will be loaded here dynamically -->
-    </div>
-</section>
-
-<!-- Customer: View Orders Section -->
-<section id="view-orders" class="content-section">
-    <div class="section-header">
-        <h2><i class="fas fa-receipt"></i> My Orders</h2>
-    </div>
-
-    <div class="orders-list">
-        <div class="empty-state">
-            <i class="fas fa-clipboard-list"></i>
-            <h3>No orders yet</h3>
-            <p>Your order history will appear here</p>
-            <button class="btn btn-primary" onclick="showSection('view-products')">
-                <i class="fas fa-shopping-bag"></i> Start Shopping
-            </button>
-        </div>
-    </div>
-</section>
-
-<!-- Customer: My Profile Section -->
-<section id="my-profile" class="content-section">
-    <div class="section-header">
-        <h2><i class="fas fa-user"></i> My Profile</h2>
-    </div>
-
-    <div class="profile-container">
-        <div class="profile-card">
-            <div class="profile-header">
-                <img src="https://avatar.iran.liara.run/public/18" alt="Profile" class="profile-avatar-large">
-                <h3 id="profile-name">Customer Name</h3>
-                <p id="profile-email">customer@example.com</p>
-            </div>
-            <div class="profile-details">
-                <div class="profile-detail-row">
-                    <span><i class="fas fa-user"></i> Username:</span>
-                    <strong id="profile-username">username</strong>
+            <!-- Customer: View Products Section -->
+            <section id="view-products" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-box-open"></i> Browse Products</h2>
                 </div>
-                <div class="profile-detail-row">
-                    <span><i class="fas fa-calendar"></i> Member Since:</span>
-                    <strong id="profile-member-since">Jan 2025</strong>
+
+                <!-- Search and Filter Bar -->
+                <div class="customer-search-bar">
+                    <div class="search-group">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="customer-search-input" placeholder="Search products..."
+                            onkeyup="debounce(loadCustomerProducts, 300)()">
+                    </div>
+                    <select id="customer-category-filter" onchange="loadCustomerProducts()">
+                        <option value="">All Categories</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Clothing">Clothing</option>
+                        <option value="Books">Books</option>
+                        <option value="Home">Home</option>
+                        <option value="Sports">Sports</option>
+                    </select>
+                    <select id="customer-sort-by" onchange="loadCustomerProducts()">
+                        <option value="name_asc">Name (A-Z)</option>
+                        <option value="name_desc">Name (Z-A)</option>
+                        <option value="price_asc">Price (Low to High)</option>
+                        <option value="price_desc">Price (High to Low)</option>
+                        <option value="newest">Newest First</option>
+                    </select>
                 </div>
-                <div class="profile-detail-row">
-                    <span><i class="fas fa-shield-alt"></i> Account Status:</span>
-                    <strong class="status-active">Active</strong>
+
+                <!-- Products Grid -->
+                <div id="customer-products-grid" class="products-grid">
+                    <!-- Products will be loaded here dynamically -->
                 </div>
-            </div>
-            <div class="profile-actions">
-                <button class="btn btn-primary" onclick="editProfile()">
-                    <i class="fas fa-edit"></i> Edit Profile
-                </button>
-                <button class="btn btn-secondary" onclick="changePassword()">
-                    <i class="fas fa-key"></i> Change Password
-                </button>
-            </div>
-        </div>
-    </div>
-</section>
+
+                <!-- Pagination -->
+                <div id="customer-pagination" class="pagination">
+                    <!-- Pagination will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Customer: Shopping Cart Section -->
+            <section id="order-product" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-shopping-cart"></i> Shopping Cart</h2>
+                </div>
+
+                <div id="cart-container" class="cart-container">
+                    <!-- Cart items will be loaded here dynamically -->
+                </div>
+            </section>
+
+            <!-- Customer: View Orders Section -->
+            <section id="view-orders" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-receipt"></i> My Orders</h2>
+                </div>
+
+                <div class="orders-list">
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h3>No orders yet</h3>
+                        <p>Your order history will appear here</p>
+                        <button class="btn btn-primary" onclick="showSection('view-products')">
+                            <i class="fas fa-shopping-bag"></i> Start Shopping
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Customer: My Profile Section -->
+            <section id="my-profile" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-user"></i> My Profile</h2>
+                </div>
+
+                <div class="profile-container">
+                    <div class="profile-card">
+                        <div class="profile-header">
+                            <img src="https://avatar.iran.liara.run/public/18" alt="Profile"
+                                class="profile-avatar-large">
+                            <h3 id="profile-name">Customer Name</h3>
+                            <p id="profile-email">customer@example.com</p>
+                        </div>
+                        <div class="profile-details">
+                            <div class="profile-detail-row">
+                                <span><i class="fas fa-user"></i> Username:</span>
+                                <strong id="profile-username">username</strong>
+                            </div>
+                            <div class="profile-detail-row">
+                                <span><i class="fas fa-calendar"></i> Member Since:</span>
+                                <strong id="profile-member-since">Jan 2025</strong>
+                            </div>
+                            <div class="profile-detail-row">
+                                <span><i class="fas fa-shield-alt"></i> Account Status:</span>
+                                <strong class="status-active">Active</strong>
+                            </div>
+                        </div>
+                        <div class="profile-actions">
+                            <button class="btn btn-primary" onclick="editProfile()">
+                                <i class="fas fa-edit"></i> Edit Profile
+                            </button>
+                            <button class="btn btn-secondary" onclick="changePassword()">
+                                <i class="fas fa-key"></i> Change Password
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Admin: Orders Management Section -->
+            <section id="admin-orders" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-shopping-cart"></i> Orders Management</h2>
+                    <p class="section-subtitle">Manage customer orders and payment approvals</p>
+                </div>
+
+                <div class="stats-grid" style="margin-bottom: 30px;">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="total-orders">0</h3>
+                            <p>Total Orders</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="pending-orders">0</h3>
+                            <p>Pending Payment</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="paid-orders">0</h3>
+                            <p>Paid Orders</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="total-revenue">KSh 0</h3>
+                            <p>Total Revenue</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>All Orders</h3>
+                        <div class="table-actions">
+                            <select id="order-status-filter" onchange="loadAdminOrders()">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="processing">Processing</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                            <select id="payment-status-filter" onchange="loadAdminOrders()">
+                                <option value="">All Payments</option>
+                                <option value="pending">Pending Payment</option>
+                                <option value="paid">Paid</option>
+                                <option value="failed">Failed</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="loadAdminOrders()">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <table id="orders-table">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Payment</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-tbody">
+                            <tr>
+                                <td colspan="8" class="text-center">Loading orders...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Admin: Order Items Section -->
+            <section id="order-items" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-boxes"></i> Order Items</h2>
+                    <p class="section-subtitle">View all items from customer orders</p>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>All Order Items</h3>
+                        <div class="table-actions">
+                            <input type="text" id="order-item-search" placeholder="Search by product or order..."
+                                onkeyup="debounce(loadOrderItems, 300)()" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px;">
+                            <button class="btn btn-primary" onclick="loadOrderItems()">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <table id="order-items-table">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>Unit Price</th>
+                                <th>Quantity</th>
+                                <th>Subtotal</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="order-items-tbody">
+                            <tr>
+                                <td colspan="7" class="text-center">Loading order items...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Admin: Customers Section -->
+            <section id="customers" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-users"></i> Customers</h2>
+                    <p class="section-subtitle">Manage customer accounts and information</p>
+                </div>
+
+                <div class="stats-grid" style="margin-bottom: 30px;">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="total-customers">0</h3>
+                            <p>Total Customers</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="active-customers">0</h3>
+                            <p>Active Customers</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="customers-with-orders">0</h3>
+                            <p>With Orders</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                            <i class="fas fa-calendar-plus"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="new-customers-month">0</h3>
+                            <p>New This Month</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>All Customers</h3>
+                        <div class="table-actions">
+                            <input type="text" id="customer-search" placeholder="Search customers..."
+                                onkeyup="debounce(loadCustomers, 300)()" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px;">
+                            <button class="btn btn-primary" onclick="loadCustomers()">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <table id="customers-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Full Name</th>
+                                <th>Email</th>
+                                <th>Orders</th>
+                                <th>Total Spent</th>
+                                <th>Joined</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customers-tbody">
+                            <tr>
+                                <td colspan="8" class="text-center">Loading customers...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Admin: Backup Section -->
+            <section id="backup" class="content-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-database"></i> Database Backup</h2>
+                    <p class="section-subtitle">Backup and restore your database</p>
+                </div>
+
+                <div class="backup-container">
+                    <div class="backup-card">
+                        <div class="backup-card-header">
+                            <i class="fas fa-download"></i>
+                            <h3>Create Backup</h3>
+                        </div>
+                        <div class="backup-card-body">
+                            <p>Create a complete backup of your database including all tables, data, and relationships.</p>
+                            <div class="backup-options">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="backup-products" checked>
+                                    <span>Products</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="backup-orders" checked>
+                                    <span>Orders</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="backup-customers" checked>
+                                    <span>Customers</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="backup-analytics" checked>
+                                    <span>Analytics</span>
+                                </label>
+                            </div>
+                            <button class="btn btn-primary btn-large" onclick="createBackup()">
+                                <i class="fas fa-download"></i> Create Backup
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="backup-card">
+                        <div class="backup-card-header">
+                            <i class="fas fa-upload"></i>
+                            <h3>Restore Backup</h3>
+                        </div>
+                        <div class="backup-card-body">
+                            <p>Restore your database from a previous backup file. This will overwrite current data.</p>
+                            <div class="file-input-wrapper" style="margin: 20px 0;">
+                                <input type="file" id="restore-file" accept=".sql">
+                                <label for="restore-file" class="file-input-label">
+                                    <i class="fas fa-file-upload"></i>
+                                    <span>Choose Backup File</span>
+                                </label>
+                            </div>
+                            <button class="btn btn-danger btn-large" onclick="restoreBackup()">
+                                <i class="fas fa-upload"></i> Restore Backup
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="backup-card">
+                        <div class="backup-card-header">
+                            <i class="fas fa-history"></i>
+                            <h3>Backup History</h3>
+                        </div>
+                        <div class="backup-card-body">
+                            <div id="backup-history-list" class="backup-history-list">
+                                <p class="text-center" style="color: #6c757d;">No backup history available</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="backup-info-card">
+                        <h4><i class="fas fa-info-circle"></i> Important Information</h4>
+                        <ul>
+                            <li><strong>Regular Backups:</strong> Create backups regularly to prevent data loss</li>
+                            <li><strong>Secure Storage:</strong> Store backup files in a secure location</li>
+                            <li><strong>Test Restores:</strong> Periodically test your backup files to ensure they work</li>
+                            <li><strong>Warning:</strong> Restoring a backup will overwrite all current database data</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
         </div>
     </div>
 
@@ -1228,14 +1549,14 @@ if (!isset($_SESSION['admin_id']) || !isset($_SESSION['role'])) {
                         <h4><i class="fas fa-image"></i> Product Image</h4>
                         <p class="image-section-subtitle">Current image and upload options</p>
                     </div>
-                
+
                     <!-- Current/Preview Image Display -->
                     <div class="image-display-area">
                         <div class="current-image-container" id="edit-current-image">
                             <!-- Current image will be displayed here -->
                         </div>
                     </div>
-                
+
                     <!-- Image Upload Controls -->
                     <div class="image-upload-controls">
                         <div class="file-input-container">
@@ -1250,7 +1571,7 @@ if (!isset($_SESSION['admin_id']) || !isset($_SESSION['role'])) {
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Product Details Section -->
                 <div class="edit-details-section">
                     <div class="details-section-header">
@@ -1295,7 +1616,7 @@ if (!isset($_SESSION['admin_id']) || !isset($_SESSION['role'])) {
                     <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
                 </div>
             </form>
-            </div>
+        </div>
     </div>
 
     <!-- Admin User Modal -->

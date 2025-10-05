@@ -240,6 +240,31 @@ function renderSidebar() {
                     <span>Add Product</span>
                 </a>
             </li>
+            <li>
+                <a href="#admin-orders" onclick="showSection('admin-orders')">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Orders</span>
+                    <span class="pending-orders-badge" id="pending-orders-badge" style="display: none;">0</span>
+                </a>
+            </li>
+            <li>
+                <a href="#order-items" onclick="showSection('order-items')">
+                    <i class="fas fa-boxes"></i>
+                    <span>Order Items</span>
+                </a>
+            </li>
+            <li>
+                <a href="#customers" onclick="showSection('customers')">
+                    <i class="fas fa-users"></i>
+                    <span>Customers</span>
+                </a>
+            </li>
+            <li>
+                <a href="#backup" onclick="showSection('backup')">
+                    <i class="fas fa-database"></i>
+                    <span>Backup</span>
+                </a>
+            </li>
         `;
     } else {
         // Customer menu items
@@ -424,6 +449,14 @@ function showSection(sectionId) {
         loadCustomerOrders();
     } else if (sectionId === 'my-profile') {
         loadCustomerProfile();
+    } else if (sectionId === 'admin-orders') {
+        loadAdminOrders();
+    } else if (sectionId === 'order-items') {
+        loadOrderItems();
+    } else if (sectionId === 'customers') {
+        loadCustomers();
+    } else if (sectionId === 'backup') {
+        loadBackupHistory();
     }
 
     // Update page title
@@ -4010,3 +4043,584 @@ function enhancedShowSection(sectionId) {
 }
 
 // Modern analytics is already initialized through the enhanced showSection function above
+
+// ============================================
+// ADMIN: ORDERS MANAGEMENT
+// ============================================
+
+// Load admin orders with filters
+async function loadAdminOrders() {
+    try {
+        const orderStatusFilter = document.getElementById('order-status-filter')?.value || '';
+        const paymentStatusFilter = document.getElementById('payment-status-filter')?.value || '';
+
+        const response = await fetch('api/orders.php?action=admin_list');
+        const result = await response.json();
+
+        if (result.success) {
+            let orders = result.orders;
+
+            // Apply filters
+            if (orderStatusFilter) {
+                orders = orders.filter(order => order.order_status === orderStatusFilter);
+            }
+            if (paymentStatusFilter) {
+                orders = orders.filter(order => order.payment_status === paymentStatusFilter);
+            }
+
+            displayAdminOrders(orders);
+            updateOrderStats(result.orders);
+            updatePendingOrdersBadge(result.orders);
+        } else {
+            showMessage('Failed to load orders: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error loading admin orders:', error);
+        showMessage('Failed to load orders', 'error');
+    }
+}
+
+function updatePendingOrdersBadge(orders) {
+    const pendingCount = orders.filter(order => order.payment_status === 'pending').length;
+    const badge = document.getElementById('pending-orders-badge');
+    
+    if (badge) {
+        if (pendingCount > 0) {
+            badge.textContent = pendingCount;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
+
+// Display admin orders in table
+function displayAdminOrders(orders) {
+    const tbody = document.getElementById('orders-tbody');
+
+    if (!tbody) return;
+
+    if (orders.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center">No orders found</td></tr>';
+        return;
+    }
+
+    let html = '';
+
+    orders.forEach(order => {
+        html += `
+            <tr>
+                <td><strong>${order.order_number}</strong></td>
+                <td>
+                    <div>${order.customer_name || order.customer_username}</div>
+                    <small style="color: #6c757d;">${order.customer_email}</small>
+                </td>
+                <td>${order.order_date_formatted}</td>
+                <td>${order.total_items} items</td>
+                <td><strong>KSh ${order.formatted_total}</strong></td>
+                <td><span class="status-badge ${order.order_status}">${order.order_status}</span></td>
+                <td><span class="status-badge ${order.payment_status}">${order.payment_status}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick="event.stopPropagation(); viewAdminOrderDetails(${order.id})" title="View Details">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    ${order.payment_status === 'pending' ?
+                `<button class="btn btn-sm btn-success" onclick="event.stopPropagation(); approvePayment(${order.id})" title="Approve Payment">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); rejectPayment(${order.id})" title="Reject Payment">
+                            <i class="fas fa-times"></i>
+                        </button>` :
+                ''}
+                </td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+}
+
+// Update order statistics
+function updateOrderStats(orders) {
+    const totalOrders = orders.length;
+    const pendingOrders = orders.filter(o => o.payment_status === 'pending').length;
+    const paidOrders = orders.filter(o => o.payment_status === 'paid').length;
+    const totalRevenue = orders
+        .filter(o => o.payment_status === 'paid')
+        .reduce((sum, o) => sum + parseFloat(o.total_amount), 0);
+
+    document.getElementById('total-orders').textContent = totalOrders;
+    document.getElementById('pending-orders').textContent = pendingOrders;
+    document.getElementById('paid-orders').textContent = paidOrders;
+    document.getElementById('total-revenue').textContent = 'KSh ' + totalRevenue.toFixed(2);
+}
+
+// View admin order details
+async function viewAdminOrderDetails(orderId) {
+    try {
+        const response = await fetch(`api/orders.php?action=details&id=${orderId}`);
+        const result = await response.json();
+
+        if (result.success) {
+            showOrderDetailsModal(result.order, result.items);
+        } else {
+            showMessage('Failed to load order details: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error loading order details:', error);
+        showMessage('Failed to load order details', 'error');
+    }
+}
+
+// Approve payment
+function approvePayment(orderId) {
+    // Create approval modal
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'approve-payment-modal';
+    modal.style.display = 'flex';
+    
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-check-circle"></i> Approve Payment</h3>
+                <span class="close" onclick="closeApprovePaymentModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Select the payment method used by the customer:</p>
+                <div class="form-group" style="margin-top: 20px;">
+                    <label for="payment-method-select">Payment Method</label>
+                    <select id="payment-method-select" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="">Select payment method...</option>
+                        <option value="Cash">Cash</option>
+                        <option value="M-Pesa">M-Pesa</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; padding: 15px;">
+                <button class="btn btn-secondary" onclick="closeApprovePaymentModal()">Cancel</button>
+                <button class="btn btn-success" onclick="confirmApprovePayment(${orderId})">
+                    <i class="fas fa-check"></i> Approve Payment
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
+
+// Close approve payment modal
+function closeApprovePaymentModal() {
+    const modal = document.getElementById('approve-payment-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Confirm approve payment
+async function confirmApprovePayment(orderId) {
+    const paymentMethodSelect = document.getElementById('payment-method-select');
+    const paymentMethod = paymentMethodSelect ? paymentMethodSelect.value : '';
+    
+    if (!paymentMethod) {
+        showMessage('Please select a payment method', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch('api/orders.php?action=approve_payment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                order_id: orderId,
+                payment_method: paymentMethod
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            closeApprovePaymentModal();
+            showMessage('Payment approved successfully', 'success');
+            loadAdminOrders();
+        } else {
+            showMessage('Failed to approve payment: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error approving payment:', error);
+        showMessage('Failed to approve payment', 'error');
+    }
+}
+
+// Reject payment
+async function rejectPayment(orderId) {
+    const reason = prompt('Enter reason for rejection:');
+
+    if (!reason) return;
+
+    if (!confirm('Are you sure you want to reject this payment? This will cancel the order.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch('api/orders.php?action=reject_payment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                id: orderId,
+                reason: reason
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showMessage('Payment rejected and order cancelled', 'success');
+            loadAdminOrders();
+        } else {
+            showMessage('Failed to reject payment: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error rejecting payment:', error);
+        showMessage('Failed to reject payment', 'error');
+    }
+}
+
+// ============================================
+// ADMIN: ORDER ITEMS
+// ============================================
+
+// Load order items
+async function loadOrderItems() {
+    try {
+        const searchTerm = document.getElementById('order-item-search')?.value || '';
+
+        const response = await fetch('api/orders.php?action=order_items');
+        const result = await response.json();
+
+        if (result.success) {
+            let items = result.items;
+
+            // Apply search filter
+            if (searchTerm) {
+                items = items.filter(item =>
+                    item.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    item.order_number.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }
+
+            displayOrderItems(items);
+        } else {
+            showMessage('Failed to load order items: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error loading order items:', error);
+        showMessage('Failed to load order items', 'error');
+    }
+}
+
+// Display order items in table
+function displayOrderItems(items) {
+    const tbody = document.getElementById('order-items-tbody');
+
+    if (!tbody) return;
+
+    if (items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center">No order items found</td></tr>';
+        return;
+    }
+
+    let html = '';
+
+    items.forEach(item => {
+        html += `
+            <tr>
+                <td><strong>${item.order_number}</strong></td>
+                <td>${item.product_name}</td>
+                <td>${item.product_category}</td>
+                <td>KSh ${item.formatted_price}</td>
+                <td>${item.quantity}</td>
+                <td><strong>KSh ${item.formatted_subtotal}</strong></td>
+                <td>${item.created_at_formatted}</td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+}
+
+// ============================================
+// ADMIN: CUSTOMERS MANAGEMENT
+// ============================================
+
+// Load customers
+async function loadCustomers() {
+    try {
+        const searchTerm = document.getElementById('customer-search')?.value || '';
+
+        const response = await fetch('api/orders.php?action=customers');
+        const result = await response.json();
+
+        if (result.success) {
+            let customers = result.customers;
+
+            // Apply search filter
+            if (searchTerm) {
+                customers = customers.filter(customer =>
+                    customer.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    customer.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    customer.email.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }
+
+            displayCustomers(customers);
+            updateCustomerStats(result.customers);
+        } else {
+            showMessage('Failed to load customers: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error loading customers:', error);
+        showMessage('Failed to load customers', 'error');
+    }
+}
+
+// Display customers in table
+function displayCustomers(customers) {
+    const tbody = document.getElementById('customers-tbody');
+
+    if (!tbody) return;
+
+    if (customers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center">No customers found</td></tr>';
+        return;
+    }
+
+    let html = '';
+
+    customers.forEach(customer => {
+        html += `
+            <tr>
+                <td>${customer.id}</td>
+                <td><strong>${customer.username}</strong></td>
+                <td>${customer.full_name}</td>
+                <td>${customer.email}</td>
+                <td>${customer.order_count} orders</td>
+                <td><strong>KSh ${customer.formatted_total_spent}</strong></td>
+                <td>${customer.created_at_formatted}</td>
+                <td><span class="status-badge ${customer.status === 'active' ? 'paid' : 'cancelled'}">${customer.status}</span></td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+}
+
+// Update customer statistics
+function updateCustomerStats(customers) {
+    const totalCustomers = customers.length;
+    const activeCustomers = customers.filter(c => c.status === 'active').length;
+    const customersWithOrders = customers.filter(c => c.order_count > 0).length;
+
+    // Calculate new customers this month
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const newCustomersMonth = customers.filter(c => {
+        const createdDate = new Date(c.created_at);
+        return createdDate >= firstDayOfMonth;
+    }).length;
+
+    document.getElementById('total-customers').textContent = totalCustomers;
+    document.getElementById('active-customers').textContent = activeCustomers;
+    document.getElementById('customers-with-orders').textContent = customersWithOrders;
+    document.getElementById('new-customers-month').textContent = newCustomersMonth;
+}
+
+// ============================================
+// ADMIN: BACKUP MANAGEMENT
+// ============================================
+
+// Create database backup
+async function createBackup() {
+    const includeProducts = document.getElementById('backup-products')?.checked;
+    const includeOrders = document.getElementById('backup-orders')?.checked;
+    const includeCustomers = document.getElementById('backup-customers')?.checked;
+    const includeAnalytics = document.getElementById('backup-analytics')?.checked;
+
+    if (!includeProducts && !includeOrders && !includeCustomers && !includeAnalytics) {
+        showMessage('Please select at least one table to backup', 'error');
+        return;
+    }
+
+    if (!confirm('Create a backup of the selected tables?')) {
+        return;
+    }
+
+    try {
+        showMessage('Creating backup...', 'info');
+
+        const response = await fetch('api/backup.php?action=create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                products: includeProducts,
+                orders: includeOrders,
+                customers: includeCustomers,
+                analytics: includeAnalytics
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showMessage('Backup created successfully!', 'success');
+
+            // Download the backup file
+            const link = document.createElement('a');
+            link.href = result.file_url;
+            link.download = result.filename;
+            link.click();
+
+            // Refresh backup history
+            loadBackupHistory();
+        } else {
+            showMessage('Failed to create backup: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error creating backup:', error);
+        showMessage('Failed to create backup', 'error');
+    }
+}
+
+// Restore database backup
+async function restoreBackup() {
+    const fileInput = document.getElementById('restore-file');
+
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        showMessage('Please select a backup file', 'error');
+        return;
+    }
+
+    if (!confirm('WARNING: Restoring a backup will overwrite all current data. Are you sure you want to continue?')) {
+        return;
+    }
+
+    try {
+        showMessage('Restoring backup...', 'info');
+
+        const formData = new FormData();
+        formData.append('backup_file', fileInput.files[0]);
+
+        const response = await fetch('api/backup.php?action=restore', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showMessage('Backup restored successfully! Page will reload.', 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            showMessage('Failed to restore backup: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error restoring backup:', error);
+        showMessage('Failed to restore backup', 'error');
+    }
+}
+
+// Load backup history
+async function loadBackupHistory() {
+    try {
+        const response = await fetch('api/backup.php?action=history');
+        const result = await response.json();
+
+        if (result.success) {
+            displayBackupHistory(result.backups);
+        }
+    } catch (error) {
+        console.error('Error loading backup history:', error);
+    }
+}
+
+// Display backup history
+function displayBackupHistory(backups) {
+    const container = document.getElementById('backup-history-list');
+
+    if (!container) return;
+
+    if (backups.length === 0) {
+        container.innerHTML = '<p class="text-center" style="color: #6c757d;">No backup history available</p>';
+        return;
+    }
+
+    let html = '';
+
+    backups.forEach(backup => {
+        html += `
+            <div class="backup-history-item">
+                <div class="backup-item-info">
+                    <div class="backup-item-name">${backup.filename}</div>
+                    <div class="backup-item-date">${backup.date}</div>
+                </div>
+                <div class="backup-item-size">${backup.size}</div>
+                <div class="backup-item-actions">
+                    <button class="btn btn-sm btn-primary" onclick="downloadBackup('${backup.filename}')">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteBackup('${backup.filename}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+// Download backup file
+function downloadBackup(filename) {
+    const link = document.createElement('a');
+    link.href = `api/backup.php?action=download&file=${filename}`;
+    link.download = filename;
+    link.click();
+}
+
+// Delete backup file
+async function deleteBackup(filename) {
+    if (!confirm(`Delete backup file: ${filename}?`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch('api/backup.php?action=delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({ filename: filename })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showMessage('Backup deleted successfully', 'success');
+            loadBackupHistory();
+        } else {
+            showMessage('Failed to delete backup: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting backup:', error);
+        showMessage('Failed to delete backup', 'error');
+    }
+}

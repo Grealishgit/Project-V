@@ -147,11 +147,18 @@ try {
             }
             
             $customer_id = $_SESSION['admin_id'];
+            $is_admin = $_SESSION['role'] === 'admin';
             
-            // Get order details
-            $sql = "SELECT * FROM orders WHERE id = ? AND customer_id = ?";
-            $stmt = $db->prepare($sql);
-            $stmt->execute([$order_id, $customer_id]);
+            // Get order details - admins can view all orders, customers only their own
+            if ($is_admin) {
+                $sql = "SELECT * FROM orders WHERE id = ?";
+                $stmt = $db->prepare($sql);
+                $stmt->execute([$order_id]);
+            } else {
+                $sql = "SELECT * FROM orders WHERE id = ? AND customer_id = ?";
+                $stmt = $db->prepare($sql);
+                $stmt->execute([$order_id, $customer_id]);
+            }
             $order = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if (!$order) {
@@ -331,6 +338,105 @@ try {
             echo json_encode([
                 'success' => true,
                 'orders' => $orders
+            ]);
+            break;
+            
+        case 'admin_list':
+            // Get all orders (admin only)
+            if ($_SESSION['role'] !== 'admin') {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Unauthorized'
+                ]);
+                exit();
+            }
+            
+            $sql = "SELECT * FROM order_summary ORDER BY order_date DESC";
+            $stmt = $db->query($sql);
+            $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Format orders
+            foreach ($orders as &$order) {
+                $order['formatted_total'] = number_format($order['total_amount'], 2);
+                $order['formatted_subtotal'] = number_format($order['subtotal'], 2);
+                $order['formatted_tax'] = number_format($order['tax_amount'], 2);
+                $order['order_date_formatted'] = date('M d, Y H:i', strtotime($order['order_date']));
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'orders' => $orders
+            ]);
+            break;
+            
+        case 'order_items':
+            // Get all order items (admin only)
+            if ($_SESSION['role'] !== 'admin') {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Unauthorized'
+                ]);
+                exit();
+            }
+            
+            $sql = "SELECT 
+                        oi.*,
+                        o.order_number,
+                        DATE_FORMAT(oi.created_at, '%M %d, %Y %H:%i') as created_at_formatted
+                    FROM order_items oi
+                    INNER JOIN orders o ON oi.order_id = o.id
+                    ORDER BY oi.created_at DESC";
+            $stmt = $db->query($sql);
+            $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Format items
+            foreach ($items as &$item) {
+                $item['formatted_price'] = number_format($item['unit_price'], 2);
+                $item['formatted_subtotal'] = number_format($item['subtotal'], 2);
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'items' => $items
+            ]);
+            break;
+            
+        case 'customers':
+            // Get all customers with order stats (admin only)
+            if ($_SESSION['role'] !== 'admin') {
+                echo json_encode([
+                    'success' => false,
+                    'error' => 'Unauthorized'
+                ]);
+                exit();
+            }
+            
+            $sql = "SELECT 
+                        u.id,
+                        u.username,
+                        u.full_name,
+                        u.email,
+                        u.created_at,
+                        DATE_FORMAT(u.created_at, '%M %d, %Y') as created_at_formatted,
+                        COUNT(DISTINCT o.id) as order_count,
+                        COALESCE(SUM(o.total_amount), 0) as total_spent
+                    FROM admin_users u
+                    LEFT JOIN orders o ON u.id = o.customer_id AND o.payment_status = 'paid'
+                    WHERE u.role = 'customer'
+                    GROUP BY u.id
+                    ORDER BY u.created_at DESC";
+            $stmt = $db->query($sql);
+            $customers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Format customers
+            foreach ($customers as &$customer) {
+                $customer['formatted_total_spent'] = number_format($customer['total_spent'], 2);
+                $customer['status'] = 'active'; // All customer accounts are active by default
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'customers' => $customers
             ]);
             break;
             

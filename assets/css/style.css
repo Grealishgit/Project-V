@@ -229,6 +229,18 @@ body {
     font-weight: 500;
 }
 
+.pending-orders-badge {
+    background-color: #e74c3c;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: auto;
+    min-width: 20px;
+    text-align: center;
+}
+
 .sidebar-footer {
     position: absolute;
     bottom: 0;
@@ -7071,6 +7083,7 @@ body.dark-mode .loader-spinner {
 /* Customer Orders Styles */
 .orders-list {
     display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 20px;
 }
 
@@ -7312,6 +7325,10 @@ body.dark-mode .loader-spinner {
 
 /* Responsive Order Styles */
 @media (max-width: 768px) {
+    .orders-list {
+        grid-template-columns: 1fr;
+    }
+
     .order-card-header {
         flex-direction: column;
         gap: 15px;
@@ -7341,5 +7358,227 @@ body.dark-mode .loader-spinner {
         flex-direction: column;
         align-items: flex-start;
         gap: 15px;
+    }
+}
+
+/* Backup Section Styles */
+.backup-container {
+    display: grid;
+    gap: 20px;
+}
+
+.backup-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.backup-card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.backup-card-header i {
+    font-size: 1.5rem;
+}
+
+.backup-card-header h3 {
+    font-size: 1.2rem;
+    margin: 0;
+}
+
+.backup-card-body {
+    padding: 25px;
+}
+
+.backup-card-body p {
+    color: #6c757d;
+    margin-bottom: 20px;
+}
+
+.backup-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 10px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.checkbox-label:hover {
+    border-color: #667eea;
+    background: #f8f9fa;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.checkbox-label span {
+    font-weight: 500;
+    color: #495057;
+}
+
+.btn-large {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.1rem;
+}
+
+.backup-history-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.backup-history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #e9ecef;
+    transition: background 0.3s ease;
+}
+
+.backup-history-item:hover {
+    background: #f8f9fa;
+}
+
+.backup-history-item:last-child {
+    border-bottom: none;
+}
+
+.backup-item-info {
+    flex: 1;
+}
+
+.backup-item-name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.backup-item-date {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.backup-item-size {
+    font-size: 0.85rem;
+    color: #667eea;
+    margin-left: 15px;
+}
+
+.backup-item-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+}
+
+.backup-info-card {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.backup-info-card h4 {
+    color: #856404;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.backup-info-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.backup-info-card li {
+    color: #856404;
+    margin-bottom: 10px;
+    padding-left: 20px;
+    position: relative;
+}
+
+.backup-info-card li:before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    font-weight: bold;
+}
+
+/* Table Actions Enhancements */
+.table-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.table-actions select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+}
+
+.table-actions select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+/* Text Center Utility */
+.text-center {
+    text-align: center;
+}
+
+/* Responsive Backup Styles */
+@media (max-width: 768px) {
+    .backup-options {
+        grid-template-columns: 1fr;
+    }
+
+    .backup-history-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .backup-item-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .table-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .table-actions select,
+    .table-actions input,
+    .table-actions button {
+        width: 100%;
     }
 }
