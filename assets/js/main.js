@@ -21,6 +21,87 @@ let productsStats = {
     lowStockCount: 0
 };
 
+// Customer products pagination
+let customerCurrentPage = 1;
+let customerProductsPerPage = 12;
+
+// Shopping Cart Manager
+class CartManager {
+    constructor() {
+        this.cart = this.loadCart();
+    }
+
+    loadCart() {
+        const saved = localStorage.getItem('shopping_cart');
+        return saved ? JSON.parse(saved) : [];
+    }
+
+    saveCart() {
+        localStorage.setItem('shopping_cart', JSON.stringify(this.cart));
+        this.updateCartBadge();
+    }
+
+    addToCart(product, quantity = 1) {
+        const existingItem = this.cart.find(item => item.id === product.id);
+
+        if (existingItem) {
+            existingItem.quantity += quantity;
+        } else {
+            this.cart.push({
+                id: product.id,
+                name: product.name,
+                price: parseFloat(product.price),
+                image: product.image,
+                quantity: quantity,
+                stock: product.stock
+            });
+        }
+
+        this.saveCart();
+        showMessage(`${product.name} added to cart!`, 'success');
+        return true;
+    }
+
+    removeFromCart(productId) {
+        this.cart = this.cart.filter(item => item.id !== productId);
+        this.saveCart();
+    }
+
+    updateQuantity(productId, quantity) {
+        const item = this.cart.find(item => item.id === productId);
+        if (item) {
+            item.quantity = Math.max(1, quantity);
+            this.saveCart();
+        }
+    }
+
+    getCartCount() {
+        return this.cart.reduce((total, item) => total + item.quantity, 0);
+    }
+
+    getCartTotal() {
+        return this.cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    }
+
+    clearCart() {
+        this.cart = [];
+        this.saveCart();
+    }
+
+    updateCartBadge() {
+        const cartBadge = document.querySelector('.cart-badge');
+        const count = this.getCartCount();
+
+        if (cartBadge) {
+            cartBadge.textContent = count;
+            cartBadge.style.display = count > 0 ? 'inline-flex' : 'none';
+        }
+    }
+}
+
+// Initialize cart manager
+const cartManager = new CartManager();
+
 // Initialize the dashboard
 document.addEventListener('DOMContentLoaded', async function () {
     // Add loading class to body to hide content during auth check
@@ -154,6 +235,7 @@ function renderSidebar() {
         `;
     } else {
         // Customer menu items
+        const cartCount = cartManager.getCartCount();
         menuHTML = `
             <li class="active">
                 <a href="#view-products" onclick="showSection('view-products')">
@@ -164,7 +246,8 @@ function renderSidebar() {
             <li>
                 <a href="#order-product" onclick="showSection('order-product')">
                     <i class="fas fa-shopping-cart"></i>
-                    <span>Order Product</span>
+                    <span>Cart</span>
+                    <span class="cart-badge" style="display: ${cartCount > 0 ? 'inline-flex' : 'none'}">${cartCount}</span>
                 </a>
             </li>
             <li>
@@ -325,6 +408,12 @@ function showSection(sectionId) {
         loadDashboardStats();
     } else if (sectionId === 'analytics') {
         loadAnalytics();
+    } else if (sectionId === 'view-products') {
+        loadCustomerProducts();
+    } else if (sectionId === 'order-product') {
+        displayCart();
+    } else if (sectionId === 'my-profile') {
+        loadCustomerProfile();
     }
 
     // Update page title
@@ -337,7 +426,11 @@ function updatePageTitle(sectionId) {
         'dashboard': 'Product Management System',
         'products': 'Products List',
         'analytics': 'Analytics Dashboard',
-        'add-product': 'Add New Product'
+        'add-product': 'Add New Product',
+        'view-products': 'Browse Products',
+        'order-product': 'Shopping Cart',
+        'view-orders': 'My Orders',
+        'my-profile': 'My Profile'
     };
 
     const pageTitle = document.getElementById('page-title');
@@ -1251,6 +1344,316 @@ function updateSearchStats(stats) {
         statsDiv.style.display = 'none';
     }
 }
+
+// ================ CUSTOMER PRODUCT FUNCTIONS ================
+
+// Load customer products with search and filter
+function loadCustomerProducts() {
+    const searchInput = document.getElementById('customer-search-input');
+    const categoryFilter = document.getElementById('customer-category-filter');
+    const sortBy = document.getElementById('customer-sort-by');
+
+    const searchTerm = searchInput ? searchInput.value : '';
+    const category = categoryFilter ? categoryFilter.value : '';
+    const sortOrder = sortBy ? sortBy.value : 'name_asc';
+
+    const params = new URLSearchParams({
+        search: searchTerm,
+        category: category,
+        sort: sortOrder,
+        limit: customerProductsPerPage,
+        offset: (customerCurrentPage - 1) * customerProductsPerPage
+    });
+
+    // Remove empty parameters
+    for (let [key, value] of [...params.entries()]) {
+        if (!value) params.delete(key);
+    }
+
+    fetch(`api/search.php?${params.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayCustomerProducts(data.products);
+                updateCustomerPagination(data.stats);
+            } else {
+                showMessage('Failed to load products', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading products:', error);
+            showMessage('Failed to load products', 'error');
+        });
+}
+
+// Display products as cards for customers
+function displayCustomerProducts(products) {
+    const container = document.getElementById('customer-products-grid');
+
+    if (!container) {
+        console.error('Customer products grid container not found');
+        return;
+    }
+
+    container.innerHTML = '';
+
+    if (products.length === 0) {
+        container.innerHTML = '<div class="no-products"><i class="fas fa-box-open"></i><p>No products found</p></div>';
+        return;
+    }
+
+    products.forEach(product => {
+        const card = document.createElement('div');
+        card.className = 'product-card';
+
+        const outOfStock = product.stock === 0;
+        const lowStock = product.stock > 0 && product.stock <= 10;
+
+        card.innerHTML = `
+            <div class="product-card-image">
+                ${product.image ?
+                `<img src="uploads/${product.image}" alt="${product.name}" loading="lazy">` :
+                '<div class="no-image"><i class="fas fa-image"></i></div>'
+            }
+                ${outOfStock ? '<div class="stock-overlay">Out of Stock</div>' : ''}
+                ${lowStock ? '<div class="stock-badge-card low">Low Stock</div>' : ''}
+            </div>
+            <div class="product-card-content">
+                <h3 class="product-card-title">${product.name}</h3>
+                <p class="product-card-category">
+                    <i class="fas fa-tag"></i> ${product.category}
+                </p>
+                ${product.description ?
+                `<p class="product-card-description">${product.description.substring(0, 100)}${product.description.length > 100 ? '...' : ''}</p>` :
+                ''
+            }
+                <div class="product-card-footer">
+                    <div class="product-card-price">${product.formatted_price}</div>
+                    <button class="btn btn-primary ${outOfStock ? 'disabled' : ''}" 
+                            onclick="addToCart(${product.id}, '${product.name.replace(/'/g, "\\'")}', ${product.price}, '${product.image || ''}', ${product.stock})"
+                            ${outOfStock ? 'disabled' : ''}>
+                        <i class="fas fa-cart-plus"></i> Add to Cart
+                    </button>
+                </div>
+            </div>
+        `;
+
+        container.appendChild(card);
+    });
+}
+
+// Add product to cart
+function addToCart(id, name, price, image, stock) {
+    if (stock === 0) {
+        showMessage('This product is out of stock', 'error');
+        return;
+    }
+
+    const product = { id, name, price, image, stock };
+    cartManager.addToCart(product, 1);
+}
+
+// Display shopping cart
+function displayCart() {
+    const container = document.getElementById('cart-container');
+
+    if (!container) {
+        console.error('Cart container not found');
+        return;
+    }
+
+    const cart = cartManager.cart;
+
+    if (cart.length === 0) {
+        container.innerHTML = `
+            <div class="empty-cart">
+                <i class="fas fa-shopping-cart"></i>
+                <h3>Your cart is empty</h3>
+                <p>Add some products to get started!</p>
+                <button class="btn btn-primary" onclick="showSection('view-products')">
+                    <i class="fas fa-shopping-bag"></i> Browse Products
+                </button>
+            </div>
+        `;
+        return;
+    }
+
+    let cartHTML = '<div class="cart-items">';
+
+    cart.forEach(item => {
+        cartHTML += `
+            <div class="cart-item">
+                <div class="cart-item-image">
+                    ${item.image ?
+                `<img src="uploads/${item.image}" alt="${item.name}">` :
+                '<div class="no-image"><i class="fas fa-image"></i></div>'
+            }
+                </div>
+                <div class="cart-item-details">
+                    <h4>${item.name}</h4>
+                    <p class="cart-item-price">$${item.price.toFixed(2)}</p>
+                </div>
+                <div class="cart-item-quantity">
+                    <button onclick="updateCartQuantity(${item.id}, ${item.quantity - 1})" class="qty-btn">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <input type="number" value="${item.quantity}" min="1" max="${item.stock}" 
+                           onchange="updateCartQuantity(${item.id}, this.value)" class="qty-input">
+                    <button onclick="updateCartQuantity(${item.id}, ${item.quantity + 1})" class="qty-btn">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <div class="cart-item-total">
+                    $${(item.price * item.quantity).toFixed(2)}
+                </div>
+                <button onclick="removeFromCart(${item.id})" class="cart-item-remove">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `;
+    });
+
+    cartHTML += '</div>';
+
+    const total = cartManager.getCartTotal();
+
+    cartHTML += `
+        <div class="cart-summary">
+            <div class="cart-summary-row">
+                <span>Subtotal:</span>
+                <span>$${total.toFixed(2)}</span>
+            </div>
+            <div class="cart-summary-row">
+                <span>Tax (10%):</span>
+                <span>$${(total * 0.1).toFixed(2)}</span>
+            </div>
+            <div class="cart-summary-row total">
+                <span>Total:</span>
+                <span>$${(total * 1.1).toFixed(2)}</span>
+            </div>
+            <div class="cart-actions">
+                <button class="btn btn-secondary" onclick="cartManager.clearCart(); displayCart();">
+                    <i class="fas fa-trash"></i> Clear Cart
+                </button>
+                <button class="btn btn-primary" onclick="proceedToCheckout()">
+                    <i class="fas fa-credit-card"></i> Proceed to Checkout
+                </button>
+            </div>
+        </div>
+    `;
+
+    container.innerHTML = cartHTML;
+}
+
+// Update cart item quantity
+function updateCartQuantity(productId, newQuantity) {
+    const quantity = parseInt(newQuantity);
+
+    if (quantity < 1) {
+        if (confirm('Remove this item from cart?')) {
+            cartManager.removeFromCart(productId);
+            displayCart();
+        }
+        return;
+    }
+
+    const item = cartManager.cart.find(i => i.id === productId);
+    if (item && quantity > item.stock) {
+        showMessage(`Only ${item.stock} items available in stock`, 'error');
+        displayCart();
+        return;
+    }
+
+    cartManager.updateQuantity(productId, quantity);
+    displayCart();
+}
+
+// Remove item from cart
+function removeFromCart(productId) {
+    if (confirm('Remove this item from cart?')) {
+        cartManager.removeFromCart(productId);
+        displayCart();
+    }
+}
+
+// Proceed to checkout
+function proceedToCheckout() {
+    showMessage('Checkout functionality coming soon!', 'info');
+}
+
+// Update customer pagination
+function updateCustomerPagination(stats) {
+    const totalProducts = stats.total_products || 0;
+    const totalPages = Math.ceil(totalProducts / customerProductsPerPage);
+
+    const paginationContainer = document.getElementById('customer-pagination');
+    if (!paginationContainer) return;
+
+    let paginationHTML = '';
+
+    if (totalPages > 1) {
+        paginationHTML += `<button onclick="customerChangePage(${customerCurrentPage - 1})" ${customerCurrentPage === 1 ? 'disabled' : ''}>Previous</button>`;
+
+        for (let i = 1; i <= Math.min(totalPages, 5); i++) {
+            paginationHTML += `<button onclick="customerChangePage(${i})" class="${i === customerCurrentPage ? 'active' : ''}">${i}</button>`;
+        }
+
+        if (totalPages > 5) {
+            paginationHTML += '<span>...</span>';
+            paginationHTML += `<button onclick="customerChangePage(${totalPages})">${totalPages}</button>`;
+        }
+
+        paginationHTML += `<button onclick="customerChangePage(${customerCurrentPage + 1})" ${customerCurrentPage === totalPages ? 'disabled' : ''}>Next</button>`;
+    }
+
+    paginationContainer.innerHTML = paginationHTML;
+}
+
+// Change customer page
+function customerChangePage(page) {
+    const totalPages = Math.ceil(totalProducts / customerProductsPerPage);
+    if (page < 1 || page > totalPages) return;
+
+    customerCurrentPage = page;
+    loadCustomerProducts();
+}
+
+// Load customer profile
+function loadCustomerProfile() {
+    if (!authManager || !authManager.currentUser) return;
+
+    const user = authManager.currentUser;
+
+    const profileName = document.getElementById('profile-name');
+    const profileEmail = document.getElementById('profile-email');
+    const profileUsername = document.getElementById('profile-username');
+    const profileMemberSince = document.getElementById('profile-member-since');
+
+    if (profileName) profileName.textContent = user.full_name || user.username;
+    if (profileEmail) profileEmail.textContent = user.email;
+    if (profileUsername) profileUsername.textContent = user.username;
+
+    // Format member since date if available
+    if (profileMemberSince && user.created_at) {
+        const date = new Date(user.created_at);
+        profileMemberSince.textContent = date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long'
+        });
+    }
+}
+
+// Edit profile (placeholder)
+function editProfile() {
+    showMessage('Profile editing feature coming soon!', 'info');
+}
+
+// Change password (placeholder)
+function changePassword() {
+    showMessage('Password change feature coming soon!', 'info');
+}
+
+// ================ END CUSTOMER FUNCTIONS ================
 
 function toggleAdvancedFilters() {
     const filtersDiv = document.getElementById('advanced-filters');

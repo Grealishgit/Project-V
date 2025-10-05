@@ -1089,6 +1089,114 @@
                     </div>
                 </div>
             </section>
+<!-- Customer: View Products Section -->
+<section id="view-products" class="content-section">
+    <div class="section-header">
+        <h2><i class="fas fa-box-open"></i> Browse Products</h2>
+    </div>
+
+    <!-- Search and Filter Bar -->
+    <div class="customer-search-bar">
+        <div class="search-group">
+            <i class="fas fa-search"></i>
+            <input type="text" id="customer-search-input" placeholder="Search products..."
+                onkeyup="debounce(loadCustomerProducts, 300)()">
+        </div>
+        <select id="customer-category-filter" onchange="loadCustomerProducts()">
+            <option value="">All Categories</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Clothing">Clothing</option>
+            <option value="Books">Books</option>
+            <option value="Home">Home</option>
+            <option value="Sports">Sports</option>
+        </select>
+        <select id="customer-sort-by" onchange="loadCustomerProducts()">
+            <option value="name_asc">Name (A-Z)</option>
+            <option value="name_desc">Name (Z-A)</option>
+            <option value="price_asc">Price (Low to High)</option>
+            <option value="price_desc">Price (High to Low)</option>
+            <option value="newest">Newest First</option>
+        </select>
+    </div>
+
+    <!-- Products Grid -->
+    <div id="customer-products-grid" class="products-grid">
+        <!-- Products will be loaded here dynamically -->
+    </div>
+
+    <!-- Pagination -->
+    <div id="customer-pagination" class="pagination">
+        <!-- Pagination will be loaded here -->
+    </div>
+</section>
+
+<!-- Customer: Shopping Cart Section -->
+<section id="order-product" class="content-section">
+    <div class="section-header">
+        <h2><i class="fas fa-shopping-cart"></i> Shopping Cart</h2>
+    </div>
+
+    <div id="cart-container" class="cart-container">
+        <!-- Cart items will be loaded here dynamically -->
+    </div>
+</section>
+
+<!-- Customer: View Orders Section -->
+<section id="view-orders" class="content-section">
+    <div class="section-header">
+        <h2><i class="fas fa-receipt"></i> My Orders</h2>
+    </div>
+
+    <div class="orders-list">
+        <div class="empty-state">
+            <i class="fas fa-clipboard-list"></i>
+            <h3>No orders yet</h3>
+            <p>Your order history will appear here</p>
+            <button class="btn btn-primary" onclick="showSection('view-products')">
+                <i class="fas fa-shopping-bag"></i> Start Shopping
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Customer: My Profile Section -->
+<section id="my-profile" class="content-section">
+    <div class="section-header">
+        <h2><i class="fas fa-user"></i> My Profile</h2>
+    </div>
+
+    <div class="profile-container">
+        <div class="profile-card">
+            <div class="profile-header">
+                <img src="https://avatar.iran.liara.run/public/18" alt="Profile" class="profile-avatar-large">
+                <h3 id="profile-name">Customer Name</h3>
+                <p id="profile-email">customer@example.com</p>
+            </div>
+            <div class="profile-details">
+                <div class="profile-detail-row">
+                    <span><i class="fas fa-user"></i> Username:</span>
+                    <strong id="profile-username">username</strong>
+                </div>
+                <div class="profile-detail-row">
+                    <span><i class="fas fa-calendar"></i> Member Since:</span>
+                    <strong id="profile-member-since">Jan 2025</strong>
+                </div>
+                <div class="profile-detail-row">
+                    <span><i class="fas fa-shield-alt"></i> Account Status:</span>
+                    <strong class="status-active">Active</strong>
+                </div>
+            </div>
+            <div class="profile-actions">
+                <button class="btn btn-primary" onclick="editProfile()">
+                    <i class="fas fa-edit"></i> Edit Profile
+                </button>
+                <button class="btn btn-secondary" onclick="changePassword()">
+                    <i class="fas fa-key"></i> Change Password
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
         </div>
     </div>
 
