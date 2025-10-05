@@ -1725,7 +1725,7 @@ function displayCustomerOrders(orders) {
         container.innerHTML = `
             <div class="empty-state">
                 <i class="fas fa-clipboard-list"></i>
-                <h3>No orders yet</h3>
+                <h3>No orders yet! Create an Order</h3>
                 <p>Your order history will appear here</p>
                 <button class="btn btn-primary" onclick="showSection('view-products')">
                     <i class="fas fa-shopping-bag"></i> Start Shopping
