@@ -1777,7 +1777,7 @@ function displayCustomerOrders(orders) {
                     </button>
                     ${order.payment_status === 'pending' ?
                 `<button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); cancelOrder(${order.id})">
-                            <i class="fas fa-times"></i> Cancel
+                            <i class="fas fa-times"></i> Cancel Order
                         </button>` :
                 ''}
                 </div>
