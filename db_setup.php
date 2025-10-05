@@ -2,7 +2,7 @@
 // Simple database setup script
 $host = 'localhost';
 $username = 'root';
-$password = '';
+$password = 'Hunter42.';
 $database = 'product_dashboard';
 
 try {

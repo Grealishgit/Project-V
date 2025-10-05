@@ -117,6 +117,13 @@ try {
                 $_SESSION['full_name'] = $full_name;
                 $_SESSION['email'] = $email;
                 
+                // Set session for newly registered user
+                $_SESSION['admin_id'] = $newUserId;
+                $_SESSION['username'] = $username;
+                $_SESSION['full_name'] = $full_name;
+                $_SESSION['email'] = $email;
+                $_SESSION['role'] = 'customer'; // Default role for new registrations
+                
                 echo json_encode([
                     'success' => true,
                     'message' => 'Registration successful',
@@ -124,7 +131,8 @@ try {
                         'id' => $newUserId,
                         'username' => $username,
                         'full_name' => $full_name,
-                        'email' => $email
+                        'email' => $email,
+                        'role' => 'customer'
                     ]
                 ]);
             } else {
@@ -146,14 +154,15 @@ try {
             
         case 'validate':
             // Check if user session exists
-            if (isset($_SESSION['admin_id'])) {
+            if (isset($_SESSION['admin_id']) && isset($_SESSION['role'])) {
                 echo json_encode([
                     'success' => true,
                     'user' => [
                         'id' => $_SESSION['admin_id'],
                         'username' => $_SESSION['username'],
                         'full_name' => $_SESSION['full_name'],
-                        'email' => $_SESSION['email']
+                        'email' => $_SESSION['email'],
+                        'role' => $_SESSION['role']
                     ]
                 ]);
             } else {

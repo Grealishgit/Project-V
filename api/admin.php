@@ -35,7 +35,7 @@ try {
         echo json_encode([
             'success' => false,
             'error' => 'Not authenticated. Please login.',
-            'redirect' => 'login.html'
+            'redirect' => 'login.php'
         ]);
         exit();
     }
@@ -56,7 +56,7 @@ try {
             echo json_encode([
                 'success' => false,
                 'error' => 'Account is inactive',
-                'redirect' => 'login.html'
+                'redirect' => 'login.php'
             ]);
             exit();
         }
@@ -81,7 +81,7 @@ try {
         echo json_encode([
             'success' => false,
             'error' => 'Admin user not found. Please login again.',
-            'redirect' => 'login.html'
+            'redirect' => 'login.php'
         ]);
     } 
 } catch (Exception $e) {

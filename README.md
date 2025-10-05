@@ -131,7 +131,7 @@ Project-V/
 ## Customization
 
 ### Adding New Categories
-Edit the category options in `index.html` and update the database as needed.
+Edit the category options in `index.php` and update the database as needed.
 
 ### Styling
 Modify `assets/css/style.css` to customize the appearance.

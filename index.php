@@ -1,10 +1,23 @@
+<?php
+session_start();
+
+// Check if user is logged in
+if (!isset($_SESSION['admin_id']) || !isset($_SESSION['role'])) {
+    // Not logged in, redirect to login page
+    header('Location: login.html');
+    exit();
+}
+
+// User is logged in - role will be handled by JavaScript
+// Session contains: role, admin_id, username, full_name, email
+?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Product Management</title>
+    <title>Dashboard - Product Management</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

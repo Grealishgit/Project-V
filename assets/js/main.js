@@ -114,15 +114,23 @@ document.addEventListener('DOMContentLoaded', async function () {
     const isAuthenticated = await authManager.checkAuth();
 
     if (isAuthenticated) {
+        console.log('=== AUTHENTICATION SUCCESSFUL ===');
+        console.log('Current User:', authManager.currentUser);
+        console.log('User Role:', authManager.userRole);
+        console.log('Is Admin:', authManager.isAdmin());
+        console.log('Is Customer:', authManager.isCustomer());
+
         // Render role-based UI
         renderSidebar();
         updateNavbar();
 
         // Load appropriate content based on role
         if (authManager.isAdmin()) {
+            console.log('Loading ADMIN dashboard...');
             loadDashboardStats();
             performSearch(); // Use enhanced search for initial load
         } else {
+            console.log('Loading CUSTOMER products...');
             // Load customer-specific content
             showSection('view-products');
         }
@@ -1028,17 +1036,17 @@ function logout() {
                 .then(data => {
                     if (data.success) {
                         // Redirect to login page
-                        window.location.href = 'login.html';
+                        window.location.href = 'login.php';
                     } else {
                         console.error('Logout failed:', data.message);
                         // Still redirect to login page even if logout API fails
-                        window.location.href = 'login.html';
+                        window.location.href = 'login.php';
                     }
                 })
                 .catch(error => {
                     console.error('Logout error:', error);
                     // Still redirect to login page even if request fails
-                    window.location.href = 'login.html';
+                    window.location.href = 'login.php';
                 });
         }
     }

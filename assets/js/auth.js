@@ -26,12 +26,18 @@ class AuthManager {
             });
             const result = await response.json();
 
+            console.log('Auth validation result:', result);
+
             if (result.success) {
                 this.currentUser = result.user;
                 this.userRole = result.user.role;
+                console.log('User role detected:', this.userRole);
+                console.log('Is Admin?', this.isAdmin());
+                console.log('Is Customer?', this.isCustomer());
                 this.updateUserDisplay();
                 return true;
             } else {
+                console.log('Auth validation failed:', result.error);
                 this.redirectToLogin();
                 return false;
             }
@@ -89,7 +95,7 @@ class AuthManager {
     }
 
     redirectToLogin() {
-        window.location.href = 'login.html';
+        window.location.href = 'login.php';
     }
 
     async getProfile() {
