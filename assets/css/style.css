@@ -490,7 +490,7 @@ body {
 }
 
 .btn-close {
-    background: #6c757d;
+    background: #ea080f;
     color: white;
     border: none;
     padding: 15px 35px;
@@ -502,6 +502,11 @@ body {
     transition: all 0.3s ease;
     text-decoration: none;
     line-height: 1.2;
+}
+
+.btn-close:hover {
+    background: #393838;
+    color: white;
 }
 
 .btn-secondary:hover {
