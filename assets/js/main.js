@@ -1914,6 +1914,7 @@ function showOrderDetailsModal(order, items) {
             '<div class="order-payment-info pending"><p><i class="fas fa-clock"></i> Awaiting payment approval from admin</p></div>'}
             </div>
             <div class="modal-footer">
+                <button class="btn-print" onclick="printReceipt(${order.id})"><i class="fas fa-print"></i> Print Receipt</button>
                 <button class="btn-close" onclick="closeOrderDetailsModal()">Close</button>
             </div>
         </div>
@@ -1927,6 +1928,255 @@ function closeOrderDetailsModal() {
     const modal = document.getElementById('order-details-modal');
     if (modal) {
         modal.remove();
+    }
+}
+
+// Print receipt
+async function printReceipt(orderId) {
+    try {
+        const response = await fetch(`api/orders.php?action=details&id=${orderId}`);
+        const result = await response.json();
+
+        if (!result.success) {
+            showMessage('Failed to load receipt data', 'error');
+            return;
+        }
+
+        const order = result.order;
+        const items = result.items;
+
+        // Create print window
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+
+        let itemsHTML = '';
+        items.forEach(item => {
+            itemsHTML += `
+                <tr>
+                    <td>${item.product_name}</td>
+                    <td style="text-align: center;">${item.quantity}</td>
+                    <td style="text-align: right;">${item.formatted_price}</td>
+                    <td style="text-align: right;">${item.formatted_subtotal}</td>
+                </tr>
+            `;
+        });
+
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Receipt - Order ${order.order_number}</title>
+                <style>
+                    * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                    }
+                    body {
+                        font-family: Arial, sans-serif;
+                        padding: 40px;
+                        color: #333;
+                    }
+                    .receipt-container {
+                        max-width: 700px;
+                        margin: 0 auto;
+                        border: 2px solid #333;
+                        padding: 30px;
+                    }
+                    .receipt-header {
+                        text-align: center;
+                        border-bottom: 2px solid #333;
+                        padding-bottom: 20px;
+                        margin-bottom: 30px;
+                    }
+                    .receipt-header h1 {
+                        font-size: 32px;
+                        margin-bottom: 10px;
+                    }
+                    .receipt-info {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 30px;
+                        font-size: 14px;
+                    }
+                    .receipt-info div {
+                        line-height: 1.6;
+                    }
+                    .receipt-info strong {
+                        display: block;
+                        font-size: 12px;
+                        color: #666;
+                        margin-bottom: 5px;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-bottom: 20px;
+                    }
+                    th {
+                        background-color: #f5f5f5;
+                        padding: 12px;
+                        text-align: left;
+                        border-bottom: 2px solid #333;
+                        font-size: 14px;
+                    }
+                    td {
+                        padding: 10px 12px;
+                        border-bottom: 1px solid #ddd;
+                        font-size: 14px;
+                    }
+                    .receipt-summary {
+                        text-align: right;
+                        margin-top: 20px;
+                        padding-top: 20px;
+                        border-top: 2px solid #333;
+                    }
+                    .receipt-summary div {
+                        display: flex;
+                        justify-content: flex-end;
+                        gap: 40px;
+                        margin-bottom: 8px;
+                        font-size: 14px;
+                    }
+                    .receipt-summary .total {
+                        font-size: 18px;
+                        font-weight: bold;
+                        margin-top: 10px;
+                        padding-top: 10px;
+                        border-top: 1px solid #333;
+                    }
+                    .receipt-footer {
+                        text-align: center;
+                        margin-top: 40px;
+                        padding-top: 20px;
+                        border-top: 2px solid #333;
+                        font-size: 14px;
+                        color: #666;
+                    }
+                    .status-badge {
+                        display: inline-block;
+                        padding: 4px 12px;
+                        border-radius: 12px;
+                        font-size: 12px;
+                        font-weight: bold;
+                        margin-left: 10px;
+                    }
+                    .status-badge.paid {
+                        background-color: #d4edda;
+                        color: #155724;
+                    }
+                    .status-badge.pending {
+                        background-color: #fff3cd;
+                        color: #856404;
+                    }
+                    .status-badge.approved {
+                        background-color: #d4edda;
+                        color: #155724;
+                    }
+                    .status-badge.processing {
+                        background-color: #cce5ff;
+                        color: #004085;
+                    }
+                    .status-badge.completed {
+                        background-color: #d4edda;
+                        color: #155724;
+                    }
+                    @media print {
+                        body {
+                            padding: 0;
+                        }
+                        .receipt-container {
+                            border: none;
+                            padding: 0;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="receipt-container">
+                    <div class="receipt-header">
+                        <h1>RECEIPT</h1>
+                        <p>Product Dashboard Store</p>
+                    </div>
+                    
+                    <div class="receipt-info">
+                        <div>
+                            <strong>ORDER NUMBER:</strong>
+                            ${order.order_number}
+                        </div>
+                        <div>
+                            <strong>DATE:</strong>
+                            ${order.order_date_formatted}
+                        </div>
+                        <div>
+                            <strong>STATUS:</strong>
+                            <span class="status-badge ${order.order_status}">${order.order_status.toUpperCase()}</span>
+                            <span class="status-badge ${order.payment_status}">${order.payment_status.toUpperCase()}</span>
+                        </div>
+                    </div>
+
+                    ${order.payment_method ? `
+                    <div class="receipt-info">
+                        <div>
+                            <strong>PAYMENT METHOD:</strong>
+                            ${order.payment_method}
+                        </div>
+                        ${order.payment_date ? `
+                        <div>
+                            <strong>PAYMENT DATE:</strong>
+                            ${order.payment_date_formatted}
+                        </div>
+                        ` : ''}
+                    </div>
+                    ` : ''}
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th style="text-align: center;">Qty</th>
+                                <th style="text-align: right;">Price</th>
+                                <th style="text-align: right;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsHTML}
+                        </tbody>
+                    </table>
+                    
+                    <div class="receipt-summary">
+                        <div>
+                            <span>Subtotal:</span>
+                            <span>${order.formatted_subtotal}</span>
+                        </div>
+                        <div>
+                            <span>Tax (10%):</span>
+                            <span>${order.formatted_tax}</span>
+                        </div>
+                        <div class="total">
+                            <span>Total:</span>
+                            <span>${order.formatted_total}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="receipt-footer">
+                        <p>Thank you for your order!</p>
+                        <p>For any inquiries, please contact support.</p>
+                    </div>
+                </div>
+                
+                <script>
+                    window.onload = function() {
+                        window.print();
+                    }
+                </script>
+            </body>
+            </html>
+        `);
+
+        printWindow.document.close();
+    } catch (error) {
+        console.error('Error printing receipt:', error);
+        showMessage('Failed to print receipt', 'error');
     }
 }
 
@@ -4272,7 +4522,7 @@ async function rejectPayment(orderId) {
                 'Content-Type': 'application/x-www-form-urlencoded'
             },
             body: new URLSearchParams({
-                id: orderId,
+                order_id: orderId,
                 reason: reason
             })
         });
