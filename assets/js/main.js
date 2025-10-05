@@ -420,6 +420,8 @@ function showSection(sectionId) {
         loadCustomerProducts();
     } else if (sectionId === 'order-product') {
         displayCart();
+    } else if (sectionId === 'view-orders') {
+        loadCustomerOrders();
     } else if (sectionId === 'my-profile') {
         loadCustomerProfile();
     }
@@ -1585,8 +1587,343 @@ function removeFromCart(productId) {
 }
 
 // Proceed to checkout
-function proceedToCheckout() {
-    showMessage('Checkout functionality coming soon!', 'info');
+async function proceedToCheckout() {
+    if (cartManager.cart.length === 0) {
+        showMessage('Your cart is empty', 'error');
+        return;
+    }
+
+    // Confirm order
+    const total = cartManager.getCartTotal();
+    const tax = total * 0.1;
+    const grandTotal = total + tax;
+
+    if (!confirm(`Place order for KSh ${grandTotal.toFixed(2)}?\n\nSubtotal: KSh ${total.toFixed(2)}\nTax (10%): KSh ${tax.toFixed(2)}\nTotal: KSh ${grandTotal.toFixed(2)}`)) {
+        return;
+    }
+
+    try {
+        // Show loading message
+        showMessage('Placing order...', 'info');
+
+        // Prepare order data
+        const orderData = {
+            items: cartManager.cart
+        };
+
+        // Send order to API
+        const response = await fetch('api/orders.php?action=create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(orderData)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            // Show success message
+            showOrderSuccessModal(result.order);
+
+            // Clear cart
+            cartManager.clearCart();
+            displayCart();
+
+            // Show success message
+            showMessage(`Order ${result.order.order_number} placed successfully!`, 'success');
+        } else {
+            showMessage('Failed to place order: ' + result.error, 'error');
+        }
+
+    } catch (error) {
+        console.error('Checkout error:', error);
+        showMessage('Failed to place order. Please try again.', 'error');
+    }
+}
+
+// Show order success modal
+function showOrderSuccessModal(order) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'order-success-modal';
+    modal.style.display = 'flex';
+
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header" style="background: #27ae60; color: white;">
+                <h3><i class="fas fa-check-circle"></i> Order Placed Successfully!</h3>
+                <span class="close" onclick="closeOrderSuccessModal()">&times;</span>
+            </div>
+            <div class="modal-body" style="text-align: center; padding: 30px;">
+                <div style="font-size: 3rem; color: #27ae60; margin-bottom: 20px;">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h3>Thank you for your order!</h3>
+                <p style="margin: 20px 0;">Your order has been placed successfully.</p>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <p><strong>Order Number:</strong> ${order.order_number}</p>
+                    <p><strong>Total Amount:</strong> KSh ${order.total}</p>
+                    <p><strong>Status:</strong> <span class="status-badge pending">Pending Payment</span></p>
+                </div>
+                
+                <p style="color: #666; font-size: 0.9rem;">
+                    Your order is pending payment approval. You will be notified once the admin approves your payment.
+                </p>
+                
+                <div style="margin-top: 30px;">
+                    <button class="btn btn-primary" onclick="closeOrderSuccessModal(); showSection('view-orders');">
+                        <i class="fas fa-list"></i> View My Orders
+                    </button>
+                    <button class="btn btn-secondary" onclick="closeOrderSuccessModal(); showSection('view-products');">
+                        <i class="fas fa-shopping-bag"></i> Continue Shopping
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+}
+
+// Close order success modal
+function closeOrderSuccessModal() {
+    const modal = document.getElementById('order-success-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Load customer orders
+async function loadCustomerOrders() {
+    try {
+        const response = await fetch('api/orders.php?action=list');
+        const result = await response.json();
+
+        if (result.success) {
+            displayCustomerOrders(result.orders);
+        } else {
+            showMessage('Failed to load orders: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error loading orders:', error);
+        showMessage('Failed to load orders', 'error');
+    }
+}
+
+// Display customer orders
+function displayCustomerOrders(orders) {
+    const container = document.querySelector('#view-orders .orders-list');
+
+    if (!container) {
+        console.error('Orders container not found');
+        return;
+    }
+
+    if (orders.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-clipboard-list"></i>
+                <h3>No orders yet</h3>
+                <p>Your order history will appear here</p>
+                <button class="btn btn-primary" onclick="showSection('view-products')">
+                    <i class="fas fa-shopping-bag"></i> Start Shopping
+                </button>
+            </div>
+        `;
+        return;
+    }
+
+    let ordersHTML = '';
+
+    orders.forEach(order => {
+        const statusClass = order.order_status;
+        const paymentClass = order.payment_status;
+
+        ordersHTML += `
+            <div class="order-card" onclick="viewOrderDetails(${order.id})">
+                <div class="order-card-header">
+                    <div>
+                        <h4>${order.order_number}</h4>
+                        <p class="order-date">${order.order_date_formatted}</p>
+                    </div>
+                    <div class="order-status-badges">
+                        <span class="status-badge ${statusClass}">${order.order_status}</span>
+                        <span class="status-badge ${paymentClass}">${order.payment_status}</span>
+                    </div>
+                </div>
+                <div class="order-card-body">
+                    <div class="order-info-row">
+                        <span><i class="fas fa-box"></i> ${order.total_items} item(s)</span>
+                        <span><i class="fas fa-cubes"></i> ${order.total_quantity} unit(s)</span>
+                    </div>
+                    <div class="order-info-row">
+                        <span>Subtotal:</span>
+                        <span>${order.formatted_subtotal}</span>
+                    </div>
+                    <div class="order-info-row">
+                        <span>Tax:</span>
+                        <span>${order.formatted_tax}</span>
+                    </div>
+                    <div class="order-info-row total">
+                        <span>Total:</span>
+                        <strong>${order.formatted_total}</strong>
+                    </div>
+                </div>
+                <div class="order-card-footer">
+                    <button class="btn btn-sm btn-secondary" onclick="event.stopPropagation(); viewOrderDetails(${order.id})">
+                        <i class="fas fa-eye"></i> View Details
+                    </button>
+                    ${order.payment_status === 'pending' ?
+                `<button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); cancelOrder(${order.id})">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>` :
+                ''}
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = ordersHTML;
+}
+
+// View order details
+async function viewOrderDetails(orderId) {
+    try {
+        const response = await fetch(`api/orders.php?action=details&id=${orderId}`);
+        const result = await response.json();
+
+        if (result.success) {
+            showOrderDetailsModal(result.order, result.items);
+        } else {
+            showMessage('Failed to load order details: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error loading order details:', error);
+        showMessage('Failed to load order details', 'error');
+    }
+}
+
+// Show order details modal
+function showOrderDetailsModal(order, items) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'order-details-modal';
+    modal.style.display = 'flex';
+
+    let itemsHTML = '';
+    items.forEach(item => {
+        itemsHTML += `
+            <div class="order-detail-item">
+                <div class="order-detail-item-image">
+                    ${item.product_image ?
+                `<img src="uploads/${item.product_image}" alt="${item.product_name}">` :
+                '<div class="no-image"><i class="fas fa-image"></i></div>'}
+                </div>
+                <div class="order-detail-item-info">
+                    <h5>${item.product_name}</h5>
+                    <p>${item.product_category}</p>
+                </div>
+                <div class="order-detail-item-qty">
+                    ${item.quantity} × ${item.formatted_price}
+                </div>
+                <div class="order-detail-item-total">
+                    ${item.formatted_subtotal}
+                </div>
+            </div>
+        `;
+    });
+
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-receipt"></i> Order Details</h3>
+                <span class="close" onclick="closeOrderDetailsModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="order-details-header">
+                    <div>
+                        <h4>Order ${order.order_number}</h4>
+                        <p>${order.order_date_formatted}</p>
+                    </div>
+                    <div>
+                        <span class="status-badge ${order.order_status}">${order.order_status}</span>
+                        <span class="status-badge ${order.payment_status}">${order.payment_status}</span>
+                    </div>
+                </div>
+                
+                <div class="order-details-items">
+                    <h5>Order Items</h5>
+                    ${itemsHTML}
+                </div>
+                
+                <div class="order-details-summary">
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span>${order.formatted_subtotal}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Tax (10%):</span>
+                        <span>${order.formatted_tax}</span>
+                    </div>
+                    <div class="summary-row total">
+                        <strong>Total:</strong>
+                        <strong>${order.formatted_total}</strong>
+                    </div>
+                </div>
+                
+                ${order.payment_date ?
+            `<div class="order-payment-info">
+                        <p><i class="fas fa-check-circle"></i> Payment approved on ${order.payment_date_formatted}</p>
+                        ${order.payment_method ? `<p>Payment Method: ${order.payment_method}</p>` : ''}
+                    </div>` :
+            '<div class="order-payment-info pending"><p><i class="fas fa-clock"></i> Awaiting payment approval from admin</p></div>'}
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeOrderDetailsModal()">Close</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+}
+
+// Close order details modal
+function closeOrderDetailsModal() {
+    const modal = document.getElementById('order-details-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+// Cancel order
+async function cancelOrder(orderId) {
+    if (!confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch('api/orders.php?action=cancel', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({ id: orderId })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showMessage('Order cancelled successfully', 'success');
+            loadCustomerOrders(); // Reload orders
+        } else {
+            showMessage('Failed to cancel order: ' + result.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error cancelling order:', error);
+        showMessage('Failed to cancel order', 'error');
+    }
 }
 
 // Update customer pagination
