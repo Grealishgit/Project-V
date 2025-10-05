@@ -1881,7 +1881,7 @@ function showOrderDetailsModal(order, items) {
             '<div class="order-payment-info pending"><p><i class="fas fa-clock"></i> Awaiting payment approval from admin</p></div>'}
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeOrderDetailsModal()">Close</button>
+                <button class="btn-close" onclick="closeOrderDetailsModal()">Close</button>
             </div>
         </div>
     `;
