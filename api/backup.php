@@ -1,4 +1,10 @@
 <?php
+// Ensure no PHP errors are sent to browser, only JSON
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+error_reporting(E_ALL);
+ob_start();
+
 session_start();
 
 header('Content-Type: application/json');
@@ -35,62 +41,36 @@ if (!file_exists($backupDir)) {
 try {
     switch ($action) {
         case 'create':
-            // Create database backup
-            $input = json_decode(file_get_contents('php://input'), true);
-            
-            $includeProducts = $input['products'] ?? true;
-            $includeOrders = $input['orders'] ?? true;
-            $includeCustomers = $input['customers'] ?? true;
-            $includeAnalytics = $input['analytics'] ?? true;
-            
-            // Generate filename with timestamp
+            // Create database backup of ALL tables
             $timestamp = date('Y-m-d_H-i-s');
             $filename = "backup_{$timestamp}.sql";
             $filepath = $backupDir . '/' . $filename;
-            
-            // Get database credentials from config
-            $config = require_once '../config/database.php';
-            $dbName = 'product_dashboard'; // Replace with your actual database name
-            
+
+            // Get database name
+            $dbName = 'product_dashboard'; // Replace with your actual database name if needed
+
             // Start building SQL
             $sql = "-- Database Backup\n";
             $sql .= "-- Generated: " . date('Y-m-d H:i:s') . "\n";
             $sql .= "-- Database: {$dbName}\n\n";
             $sql .= "SET FOREIGN_KEY_CHECKS=0;\n\n";
-            
-            // Backup products table
-            if ($includeProducts) {
-                $sql .= "-- Products Table\n";
-                $sql .= "DROP TABLE IF EXISTS `products_backup`;\n";
-                $sql .= getTableStructure($db, 'products');
-                $sql .= getTableData($db, 'products');
+
+            // Get all table names
+            $tablesStmt = $db->query("SHOW TABLES");
+            $tables = $tablesStmt->fetchAll(PDO::FETCH_COLUMN);
+
+            foreach ($tables as $table) {
+                $sql .= "-- Table: `{$table}`\n";
+                $sql .= getTableStructure($db, $table);
+                $sql .= getTableData($db, $table);
                 $sql .= "\n";
             }
-            
-            // Backup orders tables
-            if ($includeOrders) {
-                $sql .= "-- Orders Tables\n";
-                $tables = ['orders', 'order_items', 'payment_history', 'order_status_history'];
-                foreach ($tables as $table) {
-                    $sql .= getTableStructure($db, $table);
-                    $sql .= getTableData($db, $table);
-                    $sql .= "\n";
-                }
-            }
-            
-            // Backup customers (admin_users with role=customer)
-            if ($includeCustomers) {
-                $sql .= "-- Customers (Admin Users)\n";
-                $sql .= getTableStructure($db, 'admin_users');
-                $sql .= getCustomerData($db);
-                $sql .= "\n";
-            }
-            
+
             $sql .= "SET FOREIGN_KEY_CHECKS=1;\n";
-            
+
             // Save to file
             file_put_contents($filepath, $sql);
-            
+
             echo json_encode([
                 'success' => true,
                 'message' => 'Backup created successfully',
@@ -234,6 +214,10 @@ try {
     
 } catch (Exception $e) {
     error_log("Backup API Error: " . $e->getMessage());
+    // Clean any output before sending JSON
+    if (ob_get_length()) {
+        ob_clean();
+    }
     echo json_encode([
         'success' => false,
         'error' => 'An error occurred: ' . $e->getMessage()
