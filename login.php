@@ -255,9 +255,9 @@
             </button>
         </form>
 
-        <div class="forgot-password">
+        <!-- <div class="forgot-password">
             <a href="#" onclick="showForgotPassword()">Forgot Password?</a>
-        </div>
+        </div> -->
     </div>
 
     <script>

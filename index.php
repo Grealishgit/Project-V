@@ -4,7 +4,7 @@ session_start();
 // Check if user is logged in
 if (!isset($_SESSION['admin_id']) || !isset($_SESSION['role'])) {
     // Not logged in, redirect to login page
-    header('Location: login.html');
+    header('Location: login.php');
     exit();
 }
 
@@ -1343,7 +1343,8 @@ if (!isset($_SESSION['admin_id']) || !isset($_SESSION['role'])) {
                         <h3>All Order Items</h3>
                         <div class="table-actions">
                             <input type="text" id="order-item-search" placeholder="Search by product or order..."
-                                onkeyup="debounce(loadOrderItems, 300)()" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px;">
+                                onkeyup="debounce(loadOrderItems, 300)()"
+                                style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px;">
                             <button class="btn btn-primary" onclick="loadOrderItems()">
                                 <i class="fas fa-sync-alt"></i> Refresh
                             </button>
@@ -1421,7 +1422,8 @@ if (!isset($_SESSION['admin_id']) || !isset($_SESSION['role'])) {
                         <h3>All Customers</h3>
                         <div class="table-actions">
                             <input type="text" id="customer-search" placeholder="Search customers..."
-                                onkeyup="debounce(loadCustomers, 300)()" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px;">
+                                onkeyup="debounce(loadCustomers, 300)()"
+                                style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px;">
                             <button class="btn btn-primary" onclick="loadCustomers()">
                                 <i class="fas fa-sync-alt"></i> Refresh
                             </button>
@@ -1463,7 +1465,8 @@ if (!isset($_SESSION['admin_id']) || !isset($_SESSION['role'])) {
                             <h3>Create Backup</h3>
                         </div>
                         <div class="backup-card-body">
-                            <p>Create a complete backup of your database including all tables, data, and relationships.</p>
+                            <p>Create a complete backup of your database including all tables, data, and relationships.
+                            </p>
                             <div class="backup-options">
                                 <label class="checkbox-label">
                                     <input type="checkbox" id="backup-products" checked>
@@ -1525,8 +1528,10 @@ if (!isset($_SESSION['admin_id']) || !isset($_SESSION['role'])) {
                         <ul>
                             <li><strong>Regular Backups:</strong> Create backups regularly to prevent data loss</li>
                             <li><strong>Secure Storage:</strong> Store backup files in a secure location</li>
-                            <li><strong>Test Restores:</strong> Periodically test your backup files to ensure they work</li>
-                            <li><strong>Warning:</strong> Restoring a backup will overwrite all current database data</li>
+                            <li><strong>Test Restores:</strong> Periodically test your backup files to ensure they work
+                            </li>
+                            <li><strong>Warning:</strong> Restoring a backup will overwrite all current database data
+                            </li>
                         </ul>
                     </div>
                 </div>
