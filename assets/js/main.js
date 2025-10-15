@@ -1911,12 +1911,13 @@ function showOrderDetailsModal(order, items) {
                         <p><i class="fas fa-check-circle"></i> Payment approved on ${order.payment_date_formatted}</p>
                         ${order.payment_method ? `<p>Payment Method: ${order.payment_method}</p>` : ''}
                     </div>` :
-            '<div class="order-payment-info pending"><p><i class="fas fa-clock"></i> Awaiting payment approval from admin</p></div>'}
-            </div>
+        '<div class="order-payment-info pending"><p><i class="fas fa-clock"></i> Awaiting payment approval from admin</p></div>'}
             <div class="modal-footer">
                 <button class="btn-print" onclick="printReceipt(${order.id})"><i class="fas fa-print"></i> Print Receipt</button>
                 <button class="btn-close" onclick="closeOrderDetailsModal()">Close</button>
             </div>
+            </div>
+            
         </div>
     `;
 
